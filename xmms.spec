@@ -143,7 +143,7 @@ mkdir -pv %{buildroot}%{_datadir}/applications
 mkdir -p %{buildroot}%{_datadir}/pixmaps/mini
 install xmms/xmms_logo.xpm %{buildroot}%{_datadir}/pixmaps
 install xmms/xmms_mini.xpm %{buildroot}%{_datadir}/pixmaps/mini
-install -m 644 ${SOURCE3} %{buildroot}%{_datadir}/pixmaps
+install -m 644 %{SOURCE3} %{buildroot}%{_datadir}/pixmaps
 
 # unpackaged files
 rm -f %{buildroot}/%{_datadir}/xmms/*/lib*.{a,la} \
