@@ -4,7 +4,7 @@
 Summary: A media player for X which resembles Winamp.
 Name: xmms
 Version: 1.2.10
-Release: 12
+Release: 13
 Epoch: 1
 License: GPL
 Group: Applications/Multimedia
@@ -27,19 +27,21 @@ Patch9: xmms-underquoted.patch
 Patch10: xmms-alsa-backport.patch
 Patch11: xmms-1.2.10-gcc4.patch
 
-Requires: gtk+ >= 1:1.2.2, unzip
+Requires: unzip
 # the desktop file and redhat-menus are redundant requires really
 Requires: /usr/share/desktop-menu-patches/redhat-audio-player.desktop
 Requires: redhat-menus >= 0.11
 
+%if %{arts_plugin}
+Requires: arts >= 1.3.0
+%endif
+
 BuildRequires: arts-devel >= 1.0.1 gtk+-devel esound-devel mikmod-devel
 BuildRequires: /usr/bin/automake-1.4 /usr/bin/autoconf-2.13 libvorbis-devel
 BuildRequires: alsa-lib-devel glib2-devel
-PreReq: desktop-file-utils >= 0.9
+Requires(pre): desktop-file-utils >= 0.9
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Obsoletes: x11amp0.7-1-1 x11amp xmms-esd xmms-gl xmms-mikmod xmms-gnome
-
-Conflicts: arts < 1.2.0-1.5
 
 %define _use_internal_dependency_generator 0
 %define __find_requires %{SOURCE2}
@@ -200,6 +202,7 @@ rm -rf %{buildroot}
 * Wed Apr  6 2005 Seth Vidal <skvidal at phy.duke.edu> 1:1.2.10-13
 - clean up spec file a bit.
 - remove everything except for the last 2 yrs of changelog entries.
+- make things match Fedora Extras Packaging Guidelines more
 
 * Wed Apr  6 2005 Seth Vidal <skvidal at phy.duke.edu> 1:1.2.10-12
 - Apply patch from David Hill RH bz: 152138
