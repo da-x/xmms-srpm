@@ -4,7 +4,7 @@
 Summary: A media player for X which resembles Winamp.
 Name: xmms
 Version: 1.2.10
-Release: 11
+Release: 12
 Epoch: 1
 License: GPL
 Group: Applications/Multimedia
@@ -25,6 +25,7 @@ Patch6: xmms-1.2.8-alsalib.patch
 Patch10: arts_output-0.6.0-buffer.patch
 Patch11: xmms-underquoted.patch
 Patch12: xmms-alsa-backport.patch
+Patch13: xmms-1.2.10-gcc4.patch
 
 Requires: gtk+ >= 1:1.2.2, unzip
 # the desktop file and redhat-menus are redundant requires really
@@ -88,6 +89,7 @@ skins were obtained from http://www.xmms.org/skins.html .
 %patch6 -p1 -b .alsalib
 %patch11 -p1 -b .underquoted
 %patch12 -p0 -b .alsa-backport
+%patch13 -p1 -b .gcc4
 
 #%patch8 -p1 -b .ja
 
@@ -195,6 +197,12 @@ rm -rf %{buildroot}
 %{_datadir}/xmms/Skins
 
 %changelog
+* Wed Apr  6 2005 Seth Vidal <skvidal at phy.duke.edu> 1:1.2.10-12
+- Apply patch from David Hill RH bz: 152138
+
+* Thu Mar 24 2005 David Hill <djh[at]ii.net> 1:1.2.10-12
+- Add gcc4 patch
+
 * Wed Jan 05 2005 Colin Walters <walters@redhat.com> 1:1.2.10-11
 - Change BR on mikmod to mikmod-devel (138057)
 
