@@ -4,7 +4,7 @@
 Summary: A media player for X which resembles Winamp.
 Name: xmms
 Version: 1.2.10
-Release: 13
+Release: 14
 Epoch: 1
 License: GPL
 Group: Applications/Multimedia
@@ -33,7 +33,7 @@ Requires: /usr/share/desktop-menu-patches/redhat-audio-player.desktop
 Requires: redhat-menus >= 0.11
 
 %if %{arts_plugin}
-Requires: arts >= 1.3.0
+Conflicts: arts < 1.2.0-1.5
 %endif
 
 BuildRequires: arts-devel >= 1.0.1 gtk+-devel esound-devel mikmod-devel
@@ -199,6 +199,9 @@ rm -rf %{buildroot}
 %{_datadir}/xmms/Skins
 
 %changelog
+* Wed Apr  6 2005 Seth Vidal <skvidal at phy.duke.edu> 1:1.2.10-14
+- put back conflict
+
 * Wed Apr  6 2005 Seth Vidal <skvidal at phy.duke.edu> 1:1.2.10-13
 - clean up spec file a bit.
 - remove everything except for the last 2 yrs of changelog entries.
