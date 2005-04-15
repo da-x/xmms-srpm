@@ -1,16 +1,13 @@
-%define arts_plugin 1
-%define artsplugin_ver 0.6.0
-
-Summary: A media player for X which resembles Winamp.
+Summary: The X MultiMedia System, a media player which resembles Winamp
 Name: xmms
 Version: 1.2.10
-Release: 14
+Release: 15
 Epoch: 1
 License: GPL
 Group: Applications/Multimedia
 URL: http://www.xmms.org/
 Source0: http://www.xmms.org/files/1.2.x/%{name}-%{version}.patched.tar.bz2
-Source1: arts_output-%{artsplugin_ver}.tar.gz
+#Source1:
 Source2: xmms.req
 Source3: xmms.xpm
 Source4: xmmsskins-1.0.tar.gz
@@ -21,8 +18,8 @@ Patch3: xmms-1.2.8-default-skin.patch
 Patch4: xmms-1.2.9-nomp3.patch
 Patch5: xmms-1.2.8-arts.patch
 Patch6: xmms-1.2.8-alsalib.patch
-#Patch7: http://www3.big.or.jp/~sian/linux/products/xmms/xmms-1.2.5pre1j_20010601.diff.bz2
-Patch8: arts_output-0.6.0-buffer.patch
+#Patch7:
+#Patch8:
 Patch9: xmms-underquoted.patch
 Patch10: xmms-alsa-backport.patch
 Patch11: xmms-1.2.10-gcc4.patch
@@ -32,13 +29,8 @@ Requires: unzip
 Requires: /usr/share/desktop-menu-patches/redhat-audio-player.desktop
 Requires: redhat-menus >= 0.11
 
-%if %{arts_plugin}
-Conflicts: arts < 1.2.0-1.5
-%endif
-
-BuildRequires: arts-devel >= 1.0.1 gtk+-devel esound-devel mikmod-devel
-BuildRequires: /usr/bin/automake-1.4 /usr/bin/autoconf-2.13 libvorbis-devel
-BuildRequires: alsa-lib-devel glib2-devel
+BuildRequires: gtk+-devel esound-devel arts-devel alsa-lib-devel
+BuildRequires: libvorbis-devel mikmod-devel
 Requires(pre): desktop-file-utils >= 0.9
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Obsoletes: x11amp0.7-1-1 x11amp xmms-esd xmms-gl xmms-mikmod xmms-gnome
@@ -61,18 +53,8 @@ Requires: %{name} = %{epoch}:%{version} gtk+-devel
 The static libraries and header files needed for building plug-ins for
 the Xmms multimedia player.
 
-%package skins
-Summary: Skins for the xmms multimedia player.
-Group: Applications/Multimedia
-Obsoletes: xmmsskins
-Requires: %{name}
-
-%description skins
-This is a collection of skins for the xmms multimedia player. The
-skins were obtained from http://www.xmms.org/skins.html .
-
 %prep
-%setup -q -a 1
+%setup -q
 # Set default output plugin to ALSA
 %patch1 -p1 -b .audio
 # Use RTLD_LAZY, not RTLD_NOW
@@ -81,40 +63,24 @@ skins were obtained from http://www.xmms.org/skins.html .
 %patch3 -p1 -b .default-skin
 # Don't build MP3 support, support bits for MP3 placeholder
 %patch4 -p1 -b .nomp3
-%if %{arts_plugin}
 # Link arts dynamically and detect its presence for choosing output plugin
 %patch5 -p1 -b .arts
-# bump up the default buffer size to avoid audio artifacts
-%patch8 -p0 -b .buffer
-%endif
 # Don't link *everything* against alsa-lib
 %patch6 -p1 -b .alsalib
+# Fix m4 underquoted warning
 %patch9 -p1 -b .underquoted
+# Backport for recent ALSA
 %patch10 -p0 -b .alsa-backport
+# Fix compilation with gcc4
 %patch11 -p1 -b .gcc4
-
-#%patch7 -p1 -b .ja
 
 %build
 %configure \
   --enable-kanji \
   --enable-texthack \
-%if %{arts_plugin}
-  --enable-arts-shared \
-%endif
   --enable-ipv6
 
 make
-
-ln -snf ../libxmms/configfile.h xmms/configfile.h
-
-%if %{arts_plugin}
-export XMMS_CONFIG=`pwd`/xmms-config
-cd arts_output-%{artsplugin_ver}
-CFLAGS="$RPM_OPT_FLAGS -I.." %configure 
-make
-cd ..
-%endif
 
 gcc -fPIC $RPM_OPT_FLAGS -shared -Wl,-soname -Wl,librh_mp3.so -o librh_mp3.so \
      %{SOURCE5} -I. `gtk-config --cflags gtk`
@@ -122,30 +88,21 @@ gcc -fPIC $RPM_OPT_FLAGS -shared -Wl,-soname -Wl,librh_mp3.so -o librh_mp3.so \
 %install
 rm -rf %{buildroot}
 
-mkdir %{buildroot}
 make install DESTDIR=%{buildroot}
-
-%if %{arts_plugin}
-cd arts_output-%{artsplugin_ver}
-make install DESTDIR=%{buildroot}
-cd ..
-%endif
 
 install -m 755 librh_mp3.so %{buildroot}%{_libdir}/xmms/Input
-
-mkdir -p %{buildroot}%{_datadir}/xmms/Skins
-pushd %{buildroot}%{_datadir}/xmms/Skins
-  tar xvfz %{SOURCE4}
-popd
 
 mkdir -pv %{buildroot}%{_datadir}/applications
 (cd $RPM_BUILD_ROOT%{_datadir}/applications && ln -sf \
   %{_datadir}/desktop-menu-patches/redhat-audio-player.desktop)
 
 mkdir -p %{buildroot}%{_datadir}/pixmaps/mini
-install xmms/xmms_logo.xpm %{buildroot}%{_datadir}/pixmaps
-install xmms/xmms_mini.xpm %{buildroot}%{_datadir}/pixmaps/mini
-install -m 644 %{SOURCE3} %{buildroot}%{_datadir}/pixmaps
+install -m 644 xmms/xmms_logo.xpm %{buildroot}%{_datadir}/pixmaps/
+install -m 644 xmms/xmms_mini.xpm %{buildroot}%{_datadir}/pixmaps/mini/
+install -m 644 %{SOURCE3} %{buildroot}%{_datadir}/pixmaps/
+
+# create empty skins directory to be included
+mkdir -p %{buildroot}%{_datadir}/xmms/Skins
 
 # unpackaged files
 rm -f %{buildroot}/%{_datadir}/xmms/*/lib*.{a,la} \
@@ -167,38 +124,36 @@ update-desktop-database %{_datadir}/desktop-menu-patches
 rm -rf %{buildroot}
 
 %files -f %{name}.lang
-%defattr(-,root,root)
-%doc AUTHORS COPYING ChangeLog FAQ INSTALL NEWS TODO README 
+%defattr(-,root,root,0755)
+%doc AUTHORS COPYING ChangeLog FAQ NEWS TODO README 
 %{_bindir}/xmms
 %{_bindir}/wmxmms
 %{_libdir}/libxmms.so.1*
-%dir %{_libdir}/xmms
-%{_libdir}/xmms/Effect
-%{_libdir}/xmms/General
-%{_libdir}/xmms/Input
-%{_libdir}/xmms/Output
-%{_libdir}/xmms/Visualization
+%{_libdir}/xmms/
 %{_datadir}/applications/*
 %{_datadir}/pixmaps/xmms.xpm
 %{_datadir}/pixmaps/xmms_logo.xpm
 %{_datadir}/pixmaps/mini/xmms_mini.xpm
-%dir %{_datadir}/xmms
-%{_datadir}/xmms/*.xpm
+%{_datadir}/xmms/
 %{_mandir}/man1/[wx]*
 
 %files devel
-%defattr(-,root,root)
-%{_includedir}/xmms
+%defattr(-,root,root,0755)
+%{_includedir}/xmms/
 %{_bindir}/xmms-config
 %{_datadir}/aclocal/xmms.m4
 %{_libdir}/lib*.a
 %{_libdir}/lib*.so
 
-%files skins
-%defattr(-,root,root)
-%{_datadir}/xmms/Skins
-
 %changelog
+* Fri Apr 15 2005 Matthias Saou <http://freshrpms.net/> 1:1.2.10-15
+- Change main icon from xpm to png (smaller, more consistent).
+- Split off the aRts plugin.
+- Split off the skins at last, as noarch (#65614).
+- Remove generic INSTALL instructions.
+- Remove autoconf and automake build reqs, as they're no longer called.
+- Remove unneeded glib2-devel build req.
+
 * Wed Apr  6 2005 Seth Vidal <skvidal at phy.duke.edu> 1:1.2.10-14
 - put back conflict
 
