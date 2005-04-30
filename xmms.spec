@@ -1,16 +1,14 @@
 Summary: The X MultiMedia System, a media player which resembles Winamp
 Name: xmms
 Version: 1.2.10
-Release: 15
+Release: 16
 Epoch: 1
 License: GPL
 Group: Applications/Multimedia
 URL: http://www.xmms.org/
 Source0: http://www.xmms.org/files/1.2.x/%{name}-%{version}.patched.tar.bz2
-#Source1:
 Source2: xmms.req
 Source3: xmms.xpm
-Source4: xmmsskins-1.0.tar.gz
 Source5: rh_mp3.c
 Patch1: xmms-1.2.6-audio.patch
 Patch2: xmms-1.2.6-lazy.patch
@@ -18,8 +16,7 @@ Patch3: xmms-1.2.8-default-skin.patch
 Patch4: xmms-1.2.9-nomp3.patch
 Patch5: xmms-1.2.8-arts.patch
 Patch6: xmms-1.2.8-alsalib.patch
-#Patch7:
-#Patch8:
+Patch7: xmms-cd-mountpoint.patch
 Patch9: xmms-underquoted.patch
 Patch10: xmms-alsa-backport.patch
 Patch11: xmms-1.2.10-gcc4.patch
@@ -67,6 +64,8 @@ the Xmms multimedia player.
 %patch5 -p1 -b .arts
 # Don't link *everything* against alsa-lib
 %patch6 -p1 -b .alsalib
+# Use something that's more likely to work as the default cdrom mountpoint
+%patch7 -p0 -b .cd-mountpoint
 # Fix m4 underquoted warning
 %patch9 -p1 -b .underquoted
 # Backport for recent ALSA
@@ -75,7 +74,7 @@ the Xmms multimedia player.
 %patch11 -p1 -b .gcc4
 
 %build
-%configure \
+%configure --disable-dependency-tracking \
   --enable-kanji \
   --enable-texthack \
   --enable-ipv6
@@ -146,6 +145,12 @@ rm -rf %{buildroot}
 %{_libdir}/lib*.so
 
 %changelog
+* Sat Apr 30 2005 Ville Skyttä <ville.skytta at iki.fi> - 1:1.2.10-16
+- Use /media/cdrecorder as the default CDROM mountpoint for the CD audio
+  plugin, it's more likely to work nowadays than /mnt/cdrom.
+- Drop no longer needed skins tarball.
+- Build with dependency tracking disabled.
+
 * Fri Apr 15 2005 Matthias Saou <http://freshrpms.net/> 1:1.2.10-15
 - Change main icon from xpm to png (smaller, more consistent).
 - Split off the aRts plugin.
