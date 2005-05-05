@@ -1,7 +1,7 @@
 Summary: The X MultiMedia System, a media player which resembles Winamp
 Name: xmms
 Version: 1.2.10
-Release: 16
+Release: 17
 Epoch: 1
 License: GPL
 Group: Applications/Multimedia
@@ -113,11 +113,11 @@ rm -f %{buildroot}/%{_datadir}/xmms/*/lib*.{a,la} \
 
 %post
 /sbin/ldconfig  
-update-desktop-database %{_datadir}/desktop-menu-patches
+update-desktop-database %{_datadir}/desktop-menu-patches || :
 
 %postun
 /sbin/ldconfig 
-update-desktop-database %{_datadir}/desktop-menu-patches
+update-desktop-database %{_datadir}/desktop-menu-patches || :
 
 %clean
 rm -rf %{buildroot}
@@ -145,6 +145,9 @@ rm -rf %{buildroot}
 %{_libdir}/lib*.so
 
 %changelog
+* Thu May  5 2005 Matthias Saou <http://freshrpms.net/> 1:1.2.10-17
+- Don't have scriplets fail if update-desktop-database returns an error.
+
 * Sat Apr 30 2005 Ville Skyttä <ville.skytta at iki.fi> - 1:1.2.10-16
 - Use /media/cdrecorder as the default CDROM mountpoint for the CD audio
   plugin, it's more likely to work nowadays than /mnt/cdrom.
