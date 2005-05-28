@@ -1,7 +1,7 @@
 Summary: The X MultiMedia System, a media player which resembles Winamp
 Name: xmms
 Version: 1.2.10
-Release: 17
+Release: 18
 Epoch: 1
 License: GPL
 Group: Applications/Multimedia
@@ -77,7 +77,8 @@ the Xmms multimedia player.
 %configure --disable-dependency-tracking \
   --enable-kanji \
   --enable-texthack \
-  --enable-ipv6
+  --enable-ipv6 \
+  --with-pic
 
 make
 
@@ -145,6 +146,10 @@ rm -rf %{buildroot}
 %{_libdir}/lib*.so
 
 %changelog
+* Sat May 28 2005 Matthias Saou <http://freshrpms.net/> 1:1.2.10-18
+- Build with explicit --with-pic to fix compilation of flac plugin on
+  x86_64.
+
 * Thu May  5 2005 Matthias Saou <http://freshrpms.net/> 1:1.2.10-17
 - Don't have scriplets fail if update-desktop-database returns an error.
 
