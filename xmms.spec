@@ -1,7 +1,7 @@
-Summary: The X MultiMedia System, a media player which resembles Winamp
+Summary: The X MultiMedia System, a media player
 Name: xmms
 Version: 1.2.10
-Release: 18
+Release: 18%{?dist}
 Epoch: 1
 License: GPL
 Group: Applications/Multimedia
@@ -74,7 +74,8 @@ the Xmms multimedia player.
 %patch11 -p1 -b .gcc4
 
 %build
-%configure --disable-dependency-tracking \
+%configure \
+  --disable-dependency-tracking \
   --enable-kanji \
   --enable-texthack \
   --enable-ipv6 \
@@ -112,20 +113,20 @@ rm -f %{buildroot}/%{_datadir}/xmms/*/lib*.{a,la} \
 
 %find_lang %{name}
 
-%post
-/sbin/ldconfig  
-update-desktop-database %{_datadir}/desktop-menu-patches || :
-
-%postun
-/sbin/ldconfig 
-update-desktop-database %{_datadir}/desktop-menu-patches || :
-
 %clean
 rm -rf %{buildroot}
 
+%post
+/sbin/ldconfig
+update-desktop-database -q || :
+
+%postun
+/sbin/ldconfig
+update-desktop-database -q || :
+
 %files -f %{name}.lang
 %defattr(-,root,root,0755)
-%doc AUTHORS COPYING ChangeLog FAQ NEWS TODO README 
+%doc AUTHORS COPYING ChangeLog FAQ NEWS TODO README
 %{_bindir}/xmms
 %{_bindir}/wmxmms
 %{_libdir}/libxmms.so.1*
@@ -139,11 +140,11 @@ rm -rf %{buildroot}
 
 %files devel
 %defattr(-,root,root,0755)
-%{_includedir}/xmms/
 %{_bindir}/xmms-config
-%{_datadir}/aclocal/xmms.m4
+%{_includedir}/xmms/
 %{_libdir}/lib*.a
 %{_libdir}/lib*.so
+%{_datadir}/aclocal/xmms.m4
 
 %changelog
 * Sat May 28 2005 Matthias Saou <http://freshrpms.net/> 1:1.2.10-18
