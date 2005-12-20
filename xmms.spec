@@ -1,7 +1,7 @@
 Summary: The X MultiMedia System, a media player
 Name: xmms
 Version: 1.2.10
-Release: 18%{?dist}
+Release: 18.1%{?dist}
 Epoch: 1
 License: GPL
 Group: Applications/Multimedia
@@ -147,6 +147,9 @@ update-desktop-database -q || :
 %{_datadir}/aclocal/xmms.m4
 
 %changelog
+* Tue Dec 20 2005 Matthias Saou <http://freshrpms.net/> 1:1.2.10-18.1
+- Update gcc4 patch to include fix for xmms.org bug #1730, fixes FC5 build.
+
 * Sat May 28 2005 Matthias Saou <http://freshrpms.net/> 1:1.2.10-18
 - Build with explicit --with-pic to fix compilation of flac plugin on
   x86_64.

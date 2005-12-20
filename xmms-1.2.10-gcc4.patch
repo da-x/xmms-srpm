@@ -9,3 +9,16 @@
  extern irConfig ircfg;
  extern gboolean irconf_is_going;
  
+--- xmms-1.2.10/xmms/sm.c.orig	2004-01-11 18:33:00.000000000 +0100
++++ xmms-1.2.10/xmms/sm.c	2004-04-12 22:44:28.000000000 +0200
+@@ -147,8 +147,9 @@
+ 
+ #else
+ 
+-void sm_init(int argc, char **argv, const char *previous_session_id)
++const char * sm_init(int argc, char **argv, const char *previous_session_id)
+ {
++	return NULL;
+ }
+ 
+ void sm_cleanup(void)
