@@ -1,7 +1,7 @@
 Summary: The X MultiMedia System, a media player
 Name: xmms
 Version: 1.2.10
-Release: 18.1%{?dist}
+Release: 19%{?dist}
 Epoch: 1
 License: GPL
 Group: Applications/Multimedia
@@ -28,6 +28,10 @@ Requires: redhat-menus >= 0.11
 
 BuildRequires: gtk+-devel esound-devel arts-devel alsa-lib-devel
 BuildRequires: libvorbis-devel mikmod-devel
+BuildRequires: libSM-devel
+BuildRequires: libXxf86vm-devel
+BuildRequires: mesa-libGL-devel
+BuildRequires: zlib-devel
 Requires(pre): desktop-file-utils >= 0.9
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Obsoletes: x11amp0.7-1-1 x11amp xmms-esd xmms-gl xmms-mikmod xmms-gnome
@@ -80,7 +84,10 @@ the Xmms multimedia player.
   --enable-texthack \
   --enable-ipv6 \
   --with-pic
-
+for i in `find . -name Makefile`; do
+  cat $i | sed s/-lpthread//g > $i.tmp
+  mv $i.tmp $i
+done
 make
 
 gcc -fPIC $RPM_OPT_FLAGS -shared -Wl,-soname -Wl,librh_mp3.so -o librh_mp3.so \
@@ -147,6 +154,12 @@ update-desktop-database -q || :
 %{_datadir}/aclocal/xmms.m4
 
 %changelog
+* Wed Dec 28 2005 Hans de Goede <j.w.r.degoede@hhs.nl>  1:1.2.10-19
+- Remove -lpthread from all LDFLAGS as this confuses the old libtool
+  used by xmms on x86_64 (FE-bug #175493)
+- Add missing modular Xorg BuildReqs, this (re)enables session managment
+  support and the openGL plugins.
+
 * Tue Dec 20 2005 Matthias Saou <http://freshrpms.net/> 1:1.2.10-18.1
 - Update gcc4 patch to include fix for xmms.org bug #1730, fixes FC5 build.
 
