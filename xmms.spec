@@ -20,6 +20,7 @@ Patch7: xmms-cd-mountpoint.patch
 Patch9: xmms-underquoted.patch
 Patch10: xmms-alsa-backport.patch
 Patch11: xmms-1.2.10-gcc4.patch
+Patch12: xmms-1.2.10-crossfade-0.3.9.patch
 
 Requires: unzip
 # the desktop file and redhat-menus are redundant requires really
@@ -27,9 +28,9 @@ Requires: /usr/share/desktop-menu-patches/redhat-audio-player.desktop
 Requires: redhat-menus >= 0.11
 
 BuildRequires: gtk+-devel, esound-devel, arts-devel, alsa-lib-devel
-BuildRequires: libvorbis-devel, mikmod-devel
-BuildRequires: libSM-devel, libXxf86vm-devel, mesa-libGL-devel
-BuildRequires: zlib-devel
+BuildRequires: libogg-devel, libvorbis-devel, mikmod-devel
+BuildRequires: libXt-devel, libSM-devel, libXxf86vm-devel, mesa-libGL-devel
+BuildRequires: gettext-devel, zlib-devel
 Requires(post): desktop-file-utils >= 0.9
 Requires(postun): desktop-file-utils >= 0.9
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
@@ -76,6 +77,8 @@ Files needed for building plug-ins for the X MultiMedia System.
 %patch10 -p0 -b .alsa-backport
 # Fix compilation with gcc4
 %patch11 -p1 -b .gcc4
+# Fix for crossfade >= 0.3.9 to work properly
+%patch12 -p1 -b .crossfade
 
 
 %build
@@ -167,12 +170,15 @@ update-desktop-database -q || :
 * Mon Feb 13 2006 Matthias Saou <http://freshrpms.net/> 1:1.2.10-20
 - Spec file cleanup.
 - Disable previous -lpthread hack, since it seems to work again now...
+- Include crossfade 0.3.9 patch.
 - Remove very old x11amp obsoletes.
 - Exclude static libraries, update devel summary and description for it.
 - List all plugins directories in order to be aware of breakage if the
   libtool problem ever happens again.
 - Fix post/postun scriplets.
 - Remove xmms_logo.xpm and xmms_mini.xpm, they should be unused.
+- Add libXt-devel to fullfill the "checking for X..." configure check.
+- Add gettext-devel to make more configure checks happy.
 
 * Wed Dec 28 2005 Hans de Goede <j.w.r.degoede@hhs.nl>  1:1.2.10-19
 - Remove -lpthread from all LDFLAGS as this confuses the old libtool
