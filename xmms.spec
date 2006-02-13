@@ -1,7 +1,7 @@
 Summary: The X MultiMedia System, a media player
 Name: xmms
 Version: 1.2.10
-Release: 19%{?dist}
+Release: 20%{?dist}
 Epoch: 1
 License: GPL
 Group: Applications/Multimedia
@@ -26,16 +26,16 @@ Requires: unzip
 Requires: /usr/share/desktop-menu-patches/redhat-audio-player.desktop
 Requires: redhat-menus >= 0.11
 
-BuildRequires: gtk+-devel esound-devel arts-devel alsa-lib-devel
-BuildRequires: libvorbis-devel mikmod-devel
-BuildRequires: libSM-devel
-BuildRequires: libXxf86vm-devel
-BuildRequires: mesa-libGL-devel
+BuildRequires: gtk+-devel, esound-devel, arts-devel, alsa-lib-devel
+BuildRequires: libvorbis-devel, mikmod-devel
+BuildRequires: libSM-devel, libXxf86vm-devel, mesa-libGL-devel
 BuildRequires: zlib-devel
-Requires(pre): desktop-file-utils >= 0.9
+Requires(post): desktop-file-utils >= 0.9
+Requires(postun): desktop-file-utils >= 0.9
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-Obsoletes: x11amp0.7-1-1 x11amp xmms-esd xmms-gl xmms-mikmod xmms-gnome
+Obsoletes: xmms-esd xmms-gl xmms-mikmod xmms-gnome
 
+# This is to avoid requiring all of arts, esound, alsa...
 %define _use_internal_dependency_generator 0
 %define __find_requires %{SOURCE2}
 
@@ -44,15 +44,15 @@ Xmms is a multimedia (Ogg Vorbis, CDs) player for the X Window System with
 an interface similar to Winamp's. Xmms supports playlists and
 streaming content and has a configurable interface.
 
+
 %package devel
-Summary: Static libraries and header files for Xmms plug-in development.
+Summary: Files required for XMMS plug-in development
 Group: Development/Libraries
-Obsoletes: x11amp-devel
-Requires: %{name} = %{epoch}:%{version} gtk+-devel
+Requires: %{name} = %{epoch}:%{version}, gtk+-devel
 
 %description devel
-The static libraries and header files needed for building plug-ins for
-the Xmms multimedia player.
+Files needed for building plug-ins for the X MultiMedia System.
+
 
 %prep
 %setup -q
@@ -77,51 +77,49 @@ the Xmms multimedia player.
 # Fix compilation with gcc4
 %patch11 -p1 -b .gcc4
 
+
 %build
 %configure \
-  --disable-dependency-tracking \
-  --enable-kanji \
-  --enable-texthack \
-  --enable-ipv6 \
-  --with-pic
-for i in `find . -name Makefile`; do
-  cat $i | sed s/-lpthread//g > $i.tmp
-  mv $i.tmp $i
-done
-make
+    --disable-dependency-tracking \
+    --enable-kanji \
+    --enable-texthack \
+    --enable-ipv6 \
+    --with-pic
+# Hack around old libtool and x86_64 issue
+#for i in `find . -name Makefile`; do
+#    cat $i | sed s/-lpthread//g > $i.tmp
+#    mv $i.tmp $i
+#done
+%{__make} %{?_smp_mflags}
 
-gcc -fPIC $RPM_OPT_FLAGS -shared -Wl,-soname -Wl,librh_mp3.so -o librh_mp3.so \
-     %{SOURCE5} -I. `gtk-config --cflags gtk`
+# Compile the default mp3 "warning dialog" plugin
+%{__cc} %{optflags} -fPIC -shared -Wl,-soname -Wl,librh_mp3.so -o librh_mp3.so \
+    -I. `gtk-config --cflags gtk` %{SOURCE5}
+
 
 %install
-rm -rf %{buildroot}
-
-make install DESTDIR=%{buildroot}
-
-install -m 755 librh_mp3.so %{buildroot}%{_libdir}/xmms/Input
-
-mkdir -pv %{buildroot}%{_datadir}/applications
-(cd $RPM_BUILD_ROOT%{_datadir}/applications && ln -sf \
-  %{_datadir}/desktop-menu-patches/redhat-audio-player.desktop)
-
-mkdir -p %{buildroot}%{_datadir}/pixmaps/mini
-install -m 644 xmms/xmms_logo.xpm %{buildroot}%{_datadir}/pixmaps/
-install -m 644 xmms/xmms_mini.xpm %{buildroot}%{_datadir}/pixmaps/mini/
-install -m 644 %{SOURCE3} %{buildroot}%{_datadir}/pixmaps/
-
-# create empty skins directory to be included
-mkdir -p %{buildroot}%{_datadir}/xmms/Skins
-
-# unpackaged files
-rm -f %{buildroot}/%{_datadir}/xmms/*/lib*.{a,la} \
-      %{buildroot}/%{_libdir}/libxmms.la \
-      %{buildroot}/%{_libdir}/xmms/*/*.la \
-      %{buildroot}/%{_mandir}/man1/gnomexmms*
-
+%{__rm} -rf %{buildroot}
+%{__make} install DESTDIR=%{buildroot}
 %find_lang %{name}
 
+# Install default mp3 "warning dialog" plugin
+%{__install} -m 0755 librh_mp3.so %{buildroot}%{_libdir}/xmms/Input/
+
+# Link to the desktop menu entry included in redhat-menus
+%{__mkdir_p} %{buildroot}%{_datadir}/applications
+%{__ln_s} %{_datadir}/desktop-menu-patches/redhat-audio-player.desktop \
+    %{buildroot}%{_datadir}/applications/
+
+# Install xmms.xpm, the Icon= from the menu entry
+%{__install} -D -m 0644 %{SOURCE3} %{buildroot}%{_datadir}/pixmaps/xmms.xpm
+
+# Create empty Skins directory to be included
+%{__mkdir_p} %{buildroot}%{_datadir}/xmms/Skins/
+
+
 %clean
-rm -rf %{buildroot}
+%{__rm} -rf %{buildroot}
+
 
 %post
 /sbin/ldconfig
@@ -131,29 +129,51 @@ update-desktop-database -q || :
 /sbin/ldconfig
 update-desktop-database -q || :
 
+
 %files -f %{name}.lang
 %defattr(-,root,root,0755)
-%doc AUTHORS COPYING ChangeLog FAQ NEWS TODO README
+%doc AUTHORS ChangeLog COPYING FAQ NEWS TODO README
 %{_bindir}/xmms
 %{_bindir}/wmxmms
-%{_libdir}/libxmms.so.1*
-%{_libdir}/xmms/
-%{_datadir}/applications/*
+%{_libdir}/libxmms.so.*
+%dir %{_libdir}/xmms/
+%dir %{_libdir}/xmms/Effect/
+%dir %{_libdir}/xmms/General/
+%dir %{_libdir}/xmms/Input/
+%dir %{_libdir}/xmms/Output/
+%dir %{_libdir}/xmms/Visualization/
+%{_libdir}/xmms/Effect/*.so
+%{_libdir}/xmms/General/*.so
+%{_libdir}/xmms/Input/*.so
+%{_libdir}/xmms/Output/*.so
+%{_libdir}/xmms/Visualization/*.so
+%exclude %{_libdir}/xmms/*/*.la
+%{_datadir}/applications/*.desktop
 %{_datadir}/pixmaps/xmms.xpm
-%{_datadir}/pixmaps/xmms_logo.xpm
-%{_datadir}/pixmaps/mini/xmms_mini.xpm
 %{_datadir}/xmms/
-%{_mandir}/man1/[wx]*
+%{_mandir}/man1/*
 
 %files devel
 %defattr(-,root,root,0755)
 %{_bindir}/xmms-config
 %{_includedir}/xmms/
-%{_libdir}/lib*.a
-%{_libdir}/lib*.so
+%exclude %{_libdir}/*.a
+%exclude %{_libdir}/*.la
+%{_libdir}/*.so
 %{_datadir}/aclocal/xmms.m4
 
+
 %changelog
+* Mon Feb 13 2006 Matthias Saou <http://freshrpms.net/> 1:1.2.10-20
+- Spec file cleanup.
+- Disable previous -lpthread hack, since it seems to work again now...
+- Remove very old x11amp obsoletes.
+- Exclude static libraries, update devel summary and description for it.
+- List all plugins directories in order to be aware of breakage if the
+  libtool problem ever happens again.
+- Fix post/postun scriplets.
+- Remove xmms_logo.xpm and xmms_mini.xpm, they should be unused.
+
 * Wed Dec 28 2005 Hans de Goede <j.w.r.degoede@hhs.nl>  1:1.2.10-19
 - Remove -lpthread from all LDFLAGS as this confuses the old libtool
   used by xmms on x86_64 (FE-bug #175493)
