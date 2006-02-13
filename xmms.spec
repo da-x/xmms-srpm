@@ -89,10 +89,10 @@ Files needed for building plug-ins for the X MultiMedia System.
     --enable-ipv6 \
     --with-pic
 # Hack around old libtool and x86_64 issue
-#for i in `find . -name Makefile`; do
-#    cat $i | sed s/-lpthread//g > $i.tmp
-#    mv $i.tmp $i
-#done
+for i in `find . -name Makefile`; do
+    cat $i | sed s/-lpthread//g > $i.tmp
+    mv $i.tmp $i
+done
 %{__make} %{?_smp_mflags}
 
 # Compile the default mp3 "warning dialog" plugin
@@ -169,7 +169,6 @@ update-desktop-database -q || :
 %changelog
 * Mon Feb 13 2006 Matthias Saou <http://freshrpms.net/> 1:1.2.10-20
 - Spec file cleanup.
-- Disable previous -lpthread hack, since it seems to work again now...
 - Include crossfade 0.3.9 patch.
 - Remove very old x11amp obsoletes.
 - Exclude static libraries, update devel summary and description for it.
