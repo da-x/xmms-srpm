@@ -1,7 +1,7 @@
 Summary: The X MultiMedia System, a media player
 Name: xmms
 Version: 1.2.10
-Release: 20%{?dist}
+Release: 21%{?dist}
 Epoch: 1
 License: GPL
 Group: Applications/Multimedia
@@ -21,6 +21,7 @@ Patch9: xmms-underquoted.patch
 Patch10: xmms-alsa-backport.patch
 Patch11: xmms-1.2.10-gcc4.patch
 Patch12: xmms-1.2.10-crossfade-0.3.9.patch
+Patch13: xmms-1.2.10-extra_libs.patch
 
 Requires: unzip
 # the desktop file and redhat-menus are redundant requires really
@@ -29,8 +30,13 @@ Requires: redhat-menus >= 0.11
 
 BuildRequires: gtk+-devel, esound-devel, arts-devel, alsa-lib-devel
 BuildRequires: libogg-devel, libvorbis-devel, mikmod-devel
-BuildRequires: libXt-devel, libSM-devel, libXxf86vm-devel, mesa-libGL-devel
-BuildRequires: gettext-devel, zlib-devel
+BuildRequires: gettext-devel, zlib-devel, libGL-devel
+# Use monolithic X up to FC4, and modular X for FC5+
+%if 0%{?fedora} < 5
+BuildRequires: xorg-x11-devel
+%else
+BuildRequires: libXt-devel, libSM-devel, libXxf86vm-devel
+%endif
 Requires(post): desktop-file-utils >= 0.9
 Requires(postun): desktop-file-utils >= 0.9
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
@@ -79,6 +85,8 @@ Files needed for building plug-ins for the X MultiMedia System.
 %patch11 -p1 -b .gcc4
 # Fix for crossfade >= 0.3.9 to work properly
 %patch12 -p1 -b .crossfade
+# Remove extra libs from xmms-config output (was only needed for static linking)
+%patch13 -p1 -b .extra_libs
 
 
 %build
@@ -87,7 +95,8 @@ Files needed for building plug-ins for the X MultiMedia System.
     --enable-kanji \
     --enable-texthack \
     --enable-ipv6 \
-    --with-pic
+    --with-pic \
+    --disable-static
 # Hack around old libtool and x86_64 issue
 for i in `find . -name Makefile`; do
     cat $i | sed s/-lpthread//g > $i.tmp
@@ -160,13 +169,18 @@ update-desktop-database -q || :
 %defattr(-,root,root,0755)
 %{_bindir}/xmms-config
 %{_includedir}/xmms/
-%exclude %{_libdir}/*.a
 %exclude %{_libdir}/*.la
 %{_libdir}/*.so
 %{_datadir}/aclocal/xmms.m4
 
 
 %changelog
+* Mon Feb 13 2006 Matthias Saou <http://freshrpms.net/> 1:1.2.10-21
+- Remove gtk libs from xmms-config output, as they are only really needed for
+  static linking, which we no longer support (#182267).
+- Disable static in %%configure instead of excluding the built file.
+- Add conditional modular X build requirements.
+
 * Mon Feb 13 2006 Matthias Saou <http://freshrpms.net/> 1:1.2.10-20
 - Spec file cleanup.
 - Include crossfade 0.3.9 patch.
