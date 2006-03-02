@@ -128,8 +128,8 @@ done
 # Create empty Skins directory to be included
 %{__mkdir_p} %{buildroot}%{_datadir}/xmms/Skins/
 
-# On FC5 x86_64, this gets created even though we pass --disable-static
-%{__rm} -f %{buildroot}%{_libdir}/xmms/General/libsong_change.a
+# On FC5 x86_64, some get created even though we pass --disable-static
+%{__rm} -f %{buildroot}%{_libdir}/xmms/*/*.a
 
 
 %clean
