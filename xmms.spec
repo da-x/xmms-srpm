@@ -1,7 +1,7 @@
 Summary: The X MultiMedia System, a media player
 Name: xmms
 Version: 1.2.10
-Release: 21%{?dist}
+Release: 22%{?dist}
 Epoch: 1
 License: GPL
 Group: Applications/Multimedia
@@ -128,6 +128,9 @@ done
 # Create empty Skins directory to be included
 %{__mkdir_p} %{buildroot}%{_datadir}/xmms/Skins/
 
+# On FC5 x86_64, this gets created even though we pass --disable-static
+%{__rm} -f %{buildroot}%{_libdir}/xmms/General/libsong_change.a
+
 
 %clean
 %{__rm} -rf %{buildroot}
@@ -175,6 +178,9 @@ update-desktop-database -q || :
 
 
 %changelog
+* Thu Mar  2 2006 Matthias Saou <http://freshrpms.net/> 1:1.2.10-22
+- Remove /usr/lib64/xmms/General/libsong_change.a (fix for FC5 x86_64...).
+
 * Mon Feb 13 2006 Matthias Saou <http://freshrpms.net/> 1:1.2.10-21
 - Remove gtk libs from xmms-config output, as they are only really needed for
   static linking, which we no longer support (#182267).
