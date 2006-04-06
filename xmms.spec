@@ -1,63 +1,76 @@
-Summary: The X MultiMedia System, a media player
-Name: xmms
-Version: 1.2.10
-Release: 22%{?dist}
-Epoch: 1
-License: GPL
-Group: Applications/Multimedia
-URL: http://www.xmms.org/
-Source0: http://www.xmms.org/files/1.2.x/%{name}-%{version}.patched.tar.bz2
-Source2: xmms.req
-Source3: xmms.xpm
-Source5: rh_mp3.c
-Patch1: xmms-1.2.6-audio.patch
-Patch2: xmms-1.2.6-lazy.patch
-Patch3: xmms-1.2.8-default-skin.patch
-Patch4: xmms-1.2.9-nomp3.patch
-Patch5: xmms-1.2.8-arts.patch
-Patch6: xmms-1.2.8-alsalib.patch
-Patch7: xmms-cd-mountpoint.patch
-Patch9: xmms-underquoted.patch
-Patch10: xmms-alsa-backport.patch
-Patch11: xmms-1.2.10-gcc4.patch
-Patch12: xmms-1.2.10-crossfade-0.3.9.patch
-Patch13: xmms-1.2.10-extra_libs.patch
+# This is to avoid requiring all of arts, esound, audiofile...
+%define _use_internal_dependency_generator 0
+%define __find_requires sh %{SOURCE1}
 
-Requires: unzip
-# the desktop file and redhat-menus are redundant requires really
-Requires: /usr/share/desktop-menu-patches/redhat-audio-player.desktop
-Requires: redhat-menus >= 0.11
+Name:           xmms
+Version:        1.2.10
+Release:        23%{?dist}
+Epoch:          1
+Summary:        The X MultiMedia System, a media player
 
-BuildRequires: gtk+-devel, esound-devel, arts-devel, alsa-lib-devel
-BuildRequires: libogg-devel, libvorbis-devel, mikmod-devel
-BuildRequires: gettext-devel, zlib-devel, libGL-devel
-# Use monolithic X up to FC4, and modular X for FC5+
-%if 0%{?fedora} < 5
-BuildRequires: xorg-x11-devel
-%else
-BuildRequires: libXt-devel, libSM-devel, libXxf86vm-devel
-%endif
+Group:          Applications/Multimedia
+License:        GPL
+URL:            http://www.xmms.org/
+# http://www.xmms.org/download.php, to recreate the tarball:
+# $ wget http://www.xmms.org/files/1.2.x/xmms-1.2.10.tar.bz2
+# $ tar jx --exclude "mpg123*" -f xmms-1.2.10.tar.bz2
+# $ tar jcf xmms-1.2.10.patched.tar.bz2 xmms-1.2.10
+Source0:        %{name}-%{version}.patched.tar.bz2
+Source1:        xmms.req
+Source2:        xmms.xpm
+Source3:        rh_mp3.c
+Patch1:         %{name}-1.2.6-audio.patch
+Patch2:         %{name}-1.2.6-lazy.patch
+Patch3:         %{name}-1.2.8-default-skin.patch
+Patch4:         %{name}-1.2.9-nomp3.patch
+Patch5:         %{name}-1.2.8-arts.patch
+Patch6:         %{name}-1.2.8-alsalib.patch
+Patch7:         %{name}-cd-mountpoint.patch
+Patch9:         %{name}-underquoted.patch
+Patch10:        %{name}-alsa-backport.patch
+Patch11:        %{name}-1.2.10-gcc4.patch
+Patch12:        %{name}-1.2.10-crossfade-0.3.9.patch
+Patch13:        %{name}-1.2.10-extra_libs.patch
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+
+BuildRequires:  gtk+-devel
+BuildRequires:  esound-devel
+BuildRequires:  arts-devel
+BuildRequires:  alsa-lib-devel
+BuildRequires:  libogg-devel
+BuildRequires:  libvorbis-devel
+BuildRequires:  mikmod-devel
+BuildRequires:  gettext-devel
+BuildRequires:  zlib-devel
+BuildRequires:  libGL-devel
+BuildRequires:  libXt-devel
+BuildRequires:  libSM-devel
+BuildRequires:  libXxf86vm-devel
+
+Requires:       unzip
+Requires:       %{_datadir}/desktop-menu-patches/redhat-audio-player.desktop
 Requires(post): desktop-file-utils >= 0.9
 Requires(postun): desktop-file-utils >= 0.9
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-Obsoletes: xmms-esd xmms-gl xmms-mikmod xmms-gnome
-
-# This is to avoid requiring all of arts, esound, alsa...
-%define _use_internal_dependency_generator 0
-%define __find_requires %{SOURCE2}
 
 %description
-Xmms is a multimedia (Ogg Vorbis, CDs) player for the X Window System with
-an interface similar to Winamp's. Xmms supports playlists and
+XMMS is a multimedia (Ogg Vorbis, CDs) player for the X Window System
+with an interface similar to Winamp's.  XMMS supports playlists and
 streaming content and has a configurable interface.
 
+%package        libs
+Summary:        XMMS engine and core plugins
+Group:          System Environment/Libraries
 
-%package devel
-Summary: Files required for XMMS plug-in development
-Group: Development/Libraries
-Requires: %{name} = %{epoch}:%{version}, gtk+-devel
+%description    libs
+The X MultiMedia System player engine and core plugins.
 
-%description devel
+%package        devel
+Summary:        Files required for XMMS plug-in development
+Group:          Development/Libraries
+Requires:       %{name}-libs = %{epoch}:%{version}-%{release}
+Requires:       gtk+-devel
+
+%description    devel
 Files needed for building plug-ins for the X MultiMedia System.
 
 
@@ -85,9 +98,14 @@ Files needed for building plug-ins for the X MultiMedia System.
 %patch11 -p1 -b .gcc4
 # Fix for crossfade >= 0.3.9 to work properly
 %patch12 -p1 -b .crossfade
-# Remove extra libs from xmms-config output (was only needed for static linking)
+# Remove extra libs from xmms-config output (only needed for static linking)
 %patch13 -p1 -b .extra_libs
+# Avoid standard rpaths on lib64 archs, --disable-rpath doesn't do it
+sed -i -e 's|"/lib /usr/lib"|"/%{_lib} %{_libdir}"|' configure
 
+for f in AUTHORS ChangeLog README ; do
+    iconv -f iso-8859-1 -t utf-8 -o $f.utf8 $f ; mv $f.utf8 $f
+done
 
 %build
 %configure \
@@ -97,87 +115,86 @@ Files needed for building plug-ins for the X MultiMedia System.
     --enable-ipv6 \
     --with-pic \
     --disable-static
-# Hack around old libtool and x86_64 issue
-for i in `find . -name Makefile`; do
-    cat $i | sed s/-lpthread//g > $i.tmp
-    mv $i.tmp $i
-done
-%{__make} %{?_smp_mflags}
+find . -name Makefile | xargs sed -i -e s/-lpthread//g # old libtool, x86_64
+make %{?_smp_mflags}
 
-# Compile the default mp3 "warning dialog" plugin
-%{__cc} %{optflags} -fPIC -shared -Wl,-soname -Wl,librh_mp3.so -o librh_mp3.so \
-    -I. `gtk-config --cflags gtk` %{SOURCE5}
+%{__cc} $RPM_OPT_FLAGS -fPIC -shared -Wl,-soname -Wl,librh_mp3.so \
+    -o librh_mp3.so -I. $(gtk-config --cflags gtk) %{SOURCE3}
 
 
 %install
-%{__rm} -rf %{buildroot}
-%{__make} install DESTDIR=%{buildroot}
-%find_lang %{name}
-
-# Install default mp3 "warning dialog" plugin
-%{__install} -m 0755 librh_mp3.so %{buildroot}%{_libdir}/xmms/Input/
-
-# Link to the desktop menu entry included in redhat-menus
-%{__mkdir_p} %{buildroot}%{_datadir}/applications
-%{__ln_s} %{_datadir}/desktop-menu-patches/redhat-audio-player.desktop \
-    %{buildroot}%{_datadir}/applications/
-
-# Install xmms.xpm, the Icon= from the menu entry
-%{__install} -D -m 0644 %{SOURCE3} %{buildroot}%{_datadir}/pixmaps/xmms.xpm
-
-# Create empty Skins directory to be included
-%{__mkdir_p} %{buildroot}%{_datadir}/xmms/Skins/
+rm -rf $RPM_BUILD_ROOT
+make install DESTDIR=$RPM_BUILD_ROOT
+install -pm 755 librh_mp3.so $RPM_BUILD_ROOT%{_libdir}/xmms/Input
+install -dm 755 $RPM_BUILD_ROOT%{_datadir}/xmms/Skins
+find $RPM_BUILD_ROOT -name "*.la" | xargs rm -f
 
 # On FC5 x86_64, some get created even though we pass --disable-static
-%{__rm} -f %{buildroot}%{_libdir}/xmms/*/*.a
+rm -f $RPM_BUILD_ROOT%{_libdir}/xmms/*/*.a
+
+# Link to the desktop menu entry included in redhat-menus
+install -dm 755 $RPM_BUILD_ROOT%{_datadir}/applications
+ln -s %{_datadir}/desktop-menu-patches/redhat-audio-player.desktop \
+    $RPM_BUILD_ROOT%{_datadir}/applications
+install -Dpm 644 %{SOURCE2} \
+    $RPM_BUILD_ROOT%{_datadir}/icons/hicolor/48x48/apps/xmms.xpm
+
+%find_lang %{name}
 
 
 %clean
-%{__rm} -rf %{buildroot}
+rm -rf $RPM_BUILD_ROOT
 
 
 %post
-/sbin/ldconfig
+gtk-update-icon-cache -qf %{_datadir}/icons/hicolor &>/dev/null || :
 update-desktop-database -q || :
 
+%post libs -p /sbin/ldconfig
+
 %postun
-/sbin/ldconfig
+gtk-update-icon-cache -qf %{_datadir}/icons/hicolor &>/dev/null || :
 update-desktop-database -q || :
+
+%postun libs -p /sbin/ldconfig
 
 
 %files -f %{name}.lang
-%defattr(-,root,root,0755)
+%defattr(-,root,root,-)
 %doc AUTHORS ChangeLog COPYING FAQ NEWS TODO README
 %{_bindir}/xmms
 %{_bindir}/wmxmms
-%{_libdir}/libxmms.so.*
-%dir %{_libdir}/xmms/
-%dir %{_libdir}/xmms/Effect/
-%dir %{_libdir}/xmms/General/
-%dir %{_libdir}/xmms/Input/
-%dir %{_libdir}/xmms/Output/
-%dir %{_libdir}/xmms/Visualization/
-%{_libdir}/xmms/Effect/*.so
-%{_libdir}/xmms/General/*.so
-%{_libdir}/xmms/Input/*.so
-%{_libdir}/xmms/Output/*.so
-%{_libdir}/xmms/Visualization/*.so
-%exclude %{_libdir}/xmms/*/*.la
 %{_datadir}/applications/*.desktop
-%{_datadir}/pixmaps/xmms.xpm
+%{_datadir}/icons/hicolor/*x*/apps/xmms.xpm
 %{_datadir}/xmms/
-%{_mandir}/man1/*
+%{_mandir}/man1/*xmms.1*
+
+%files libs
+%defattr(-,root,root,-)
+%{_libdir}/libxmms.so.*
+%{_libdir}/xmms/
 
 %files devel
-%defattr(-,root,root,0755)
+%defattr(-,root,root,-)
 %{_bindir}/xmms-config
 %{_includedir}/xmms/
-%exclude %{_libdir}/*.la
-%{_libdir}/*.so
+%{_libdir}/libxmms.so
 %{_datadir}/aclocal/xmms.m4
 
 
 %changelog
+* Thu Apr  6 2006 Ville Skyttä <ville.skytta at iki.fi> - 1:1.2.10-23
+- Split library and plugins to xmms-libs (#184606).
+- ALSA is ubiquitous, don't filter dependencies to it.
+- Avoid standard rpaths on lib64 archs.
+- Tighten versioned -devel dependency to -libs.
+- Drop no longer needed Obsoletes.
+- Install icon to %%{_datadir}/icons.
+- Convert docs to UTF-8.
+- Specfile rewrite/cleanup.
+- Drop bogus Source0 URL.
+- Don't use %%exclude.
+
 * Thu Mar  2 2006 Matthias Saou <http://freshrpms.net/> 1:1.2.10-22
 - Remove /usr/lib64/xmms/General/libsong_change.a (fix for FC5 x86_64...).
 

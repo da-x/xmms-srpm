@@ -3,5 +3,5 @@
 filelist=`sed "s/['\"]/\\\&/g"`
 
 { echo $filelist | tr [:blank:] \\n | /usr/lib/rpm/find-requires | \
-	grep -v artsc | grep -v esd | grep -v audiofile | grep -v asound
+	grep -v artsc | grep -v esd | grep -v audiofile
 } | sort -u
