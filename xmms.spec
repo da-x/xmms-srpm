@@ -4,7 +4,7 @@
 
 Name:           xmms
 Version:        1.2.10
-Release:        23%{?dist}
+Release:        24%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -19,6 +19,8 @@ Source0:        %{name}-%{version}.patched.tar.bz2
 Source1:        xmms.req
 Source2:        xmms.xpm
 Source3:        rh_mp3.c
+# http://cvs.xmms.org/cvsweb.cgi/xmms/General/joystick/joy.c.diff?r1=1.8&r2=1.9
+Patch0:         %{name}-1.2.10-joycrash.patch
 Patch1:         %{name}-1.2.6-audio.patch
 Patch2:         %{name}-1.2.6-lazy.patch
 Patch3:         %{name}-1.2.8-default-skin.patch
@@ -76,6 +78,8 @@ Files needed for building plug-ins for the X MultiMedia System.
 
 %prep
 %setup -q
+# Fix joystick plugin crashes
+%patch0 -p1 -b .joycrash
 # Set default output plugin to ALSA
 %patch1 -p1 -b .audio
 # Use RTLD_LAZY, not RTLD_NOW
@@ -183,6 +187,9 @@ update-desktop-database -q || :
 
 
 %changelog
+* Tue May 23 2006 Ville Skyttä <ville.skytta at iki.fi> - 1:1.2.10-24
+- Apply upstream fix for joystick plugin crashes.
+
 * Thu Apr  6 2006 Ville Skyttä <ville.skytta at iki.fi> - 1:1.2.10-23
 - Split library and plugins to xmms-libs (#184606).
 - ALSA is ubiquitous, don't filter dependencies to it.
