@@ -4,7 +4,7 @@
 
 Name:           xmms
 Version:        1.2.10
-Release:        24%{?dist}
+Release:        25%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -28,11 +28,12 @@ Patch4:         %{name}-1.2.9-nomp3.patch
 Patch5:         %{name}-1.2.8-arts.patch
 Patch6:         %{name}-1.2.8-alsalib.patch
 Patch7:         %{name}-cd-mountpoint.patch
+# Patch8 on top of patch4
+Patch8:         %{name}-1.2.10-multidevel.patch
 Patch9:         %{name}-underquoted.patch
 Patch10:        %{name}-alsa-backport.patch
 Patch11:        %{name}-1.2.10-gcc4.patch
 Patch12:        %{name}-1.2.10-crossfade-0.3.9.patch
-Patch13:        %{name}-1.2.10-extra_libs.patch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:  gtk+-devel
@@ -71,6 +72,7 @@ Summary:        Files required for XMMS plug-in development
 Group:          Development/Libraries
 Requires:       %{name}-libs = %{epoch}:%{version}-%{release}
 Requires:       gtk+-devel
+Requires:       pkgconfig
 
 %description    devel
 Files needed for building plug-ins for the X MultiMedia System.
@@ -94,6 +96,8 @@ Files needed for building plug-ins for the X MultiMedia System.
 %patch6 -p1 -b .alsalib
 # Use something that's more likely to work as the default cdrom mountpoint
 %patch7 -p0 -b .cd-mountpoint
+# Avoid multilib devel conflicts
+%patch8 -p1 -b .multidevel
 # Fix m4 underquoted warning
 %patch9 -p1 -b .underquoted
 # Backport for recent ALSA
@@ -102,8 +106,6 @@ Files needed for building plug-ins for the X MultiMedia System.
 %patch11 -p1 -b .gcc4
 # Fix for crossfade >= 0.3.9 to work properly
 %patch12 -p1 -b .crossfade
-# Remove extra libs from xmms-config output (only needed for static linking)
-%patch13 -p1 -b .extra_libs
 # Avoid standard rpaths on lib64 archs, --disable-rpath doesn't do it
 sed -i -e 's|"/lib /usr/lib"|"/%{_lib} %{_libdir}"|' configure
 
@@ -143,6 +145,8 @@ ln -s %{_datadir}/desktop-menu-patches/redhat-audio-player.desktop \
 install -Dpm 644 %{SOURCE2} \
     $RPM_BUILD_ROOT%{_datadir}/icons/hicolor/48x48/apps/xmms.xpm
 
+install -Dpm 644 xmms.pc $RPM_BUILD_ROOT%{_libdir}/pkgconfig/xmms.pc
+
 %find_lang %{name}
 
 
@@ -175,6 +179,7 @@ update-desktop-database -q || :
 
 %files libs
 %defattr(-,root,root,-)
+%doc COPYING
 %{_libdir}/libxmms.so.*
 %{_libdir}/xmms/
 
@@ -183,10 +188,15 @@ update-desktop-database -q || :
 %{_bindir}/xmms-config
 %{_includedir}/xmms/
 %{_libdir}/libxmms.so
+%{_libdir}/pkgconfig/xmms.pc
 %{_datadir}/aclocal/xmms.m4
 
 
 %changelog
+* Thu May 25 2006 Ville Skyttä <ville.skytta at iki.fi> - 1:1.2.10-25
+- Avoid multilib conflicts in -devel, introducing xmms.pc.
+- Include license text in -libs.
+
 * Tue May 23 2006 Ville Skyttä <ville.skytta at iki.fi> - 1:1.2.10-24
 - Apply upstream fix for joystick plugin crashes.
 
