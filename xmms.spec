@@ -4,7 +4,7 @@
 
 Name:           xmms
 Version:        1.2.10
-Release:        25%{?dist}
+Release:        26%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -122,7 +122,7 @@ done
     --with-pic \
     --disable-static
 find . -name Makefile | xargs sed -i -e s/-lpthread//g # old libtool, x86_64
-make %{?_smp_mflags}
+make
 
 %{__cc} $RPM_OPT_FLAGS -fPIC -shared -Wl,-soname -Wl,librh_mp3.so \
     -o librh_mp3.so -I. $(gtk-config --cflags gtk) %{SOURCE3}
@@ -193,6 +193,9 @@ update-desktop-database -q || :
 
 
 %changelog
+* Wed Jun  7 2006 Jeremy Katz <katzj@redhat.com> - 1:1.2.10-26
+- don't use parallel make to try to stop the build hang
+
 * Thu May 25 2006 Ville Skyttä <ville.skytta at iki.fi> - 1:1.2.10-25
 - Avoid multilib conflicts in -devel, introducing xmms.pc.
 - Include license text in -libs.
