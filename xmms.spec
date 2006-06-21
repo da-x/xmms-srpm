@@ -1,10 +1,6 @@
-# This is to avoid requiring all of arts, esound, audiofile...
-%define _use_internal_dependency_generator 0
-%define __find_requires sh %{SOURCE1}
-
 Name:           xmms
 Version:        1.2.10
-Release:        26%{?dist}
+Release:        27%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -16,7 +12,6 @@ URL:            http://www.xmms.org/
 # $ tar jx --exclude "mpg123*" -f xmms-1.2.10.tar.bz2
 # $ tar jcf xmms-1.2.10.patched.tar.bz2 xmms-1.2.10
 Source0:        %{name}-%{version}.patched.tar.bz2
-Source1:        xmms.req
 Source2:        xmms.xpm
 Source3:        rh_mp3.c
 # http://cvs.xmms.org/cvsweb.cgi/xmms/General/joystick/joy.c.diff?r1=1.8&r2=1.9
@@ -66,6 +61,14 @@ Group:          System Environment/Libraries
 
 %description    libs
 The X MultiMedia System player engine and core plugins.
+
+%package        esd
+Summary:        EsounD output plugin for XMMS
+Group:          System Environment/Libraries
+Requires:       %{name}-libs = %{epoch}:%{version}-%{release}
+
+%description    esd
+EsounD output plugin for the X MultiMedia System.
 
 %package        devel
 Summary:        Files required for XMMS plug-in development
@@ -122,7 +125,7 @@ done
     --with-pic \
     --disable-static
 find . -name Makefile | xargs sed -i -e s/-lpthread//g # old libtool, x86_64
-make
+make %{?_smp_mflags}
 
 %{__cc} $RPM_OPT_FLAGS -fPIC -shared -Wl,-soname -Wl,librh_mp3.so \
     -o librh_mp3.so -I. $(gtk-config --cflags gtk) %{SOURCE3}
@@ -140,7 +143,7 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/xmms/*/*.a
 
 # Link to the desktop menu entry included in redhat-menus
 install -dm 755 $RPM_BUILD_ROOT%{_datadir}/applications
-ln -s %{_datadir}/desktop-menu-patches/redhat-audio-player.desktop \
+ln -s ../desktop-menu-patches/redhat-audio-player.desktop \
     $RPM_BUILD_ROOT%{_datadir}/applications
 install -Dpm 644 %{SOURCE2} \
     $RPM_BUILD_ROOT%{_datadir}/icons/hicolor/48x48/apps/xmms.xpm
@@ -181,7 +184,19 @@ update-desktop-database -q || :
 %defattr(-,root,root,-)
 %doc COPYING
 %{_libdir}/libxmms.so.*
-%{_libdir}/xmms/
+%dir %{_libdir}/xmms/
+%{_libdir}/xmms/Effect/
+%{_libdir}/xmms/General/
+%{_libdir}/xmms/Input/
+%dir %{_libdir}/xmms/Output/
+%{_libdir}/xmms/Output/libALSA.so
+%{_libdir}/xmms/Output/libOSS.so
+%{_libdir}/xmms/Output/libdisk_writer.so
+%{_libdir}/xmms/Visualization/
+
+%files esd
+%defattr(-,root,root,-)
+%{_libdir}/xmms/Output/libesdout.so
 
 %files devel
 %defattr(-,root,root,-)
@@ -193,6 +208,11 @@ update-desktop-database -q || :
 
 
 %changelog
+* Wed Jun 21 2006 Ville Skyttä <ville.skytta at iki.fi> - 1:1.2.10-27
+- Split EsounD output plugin into -esd subpackage, don't filter dependencies.
+- Make menu entry symlink relative.
+- Re-enable parallel make.
+
 * Wed Jun  7 2006 Jeremy Katz <katzj@redhat.com> - 1:1.2.10-26
 - don't use parallel make to try to stop the build hang
 
