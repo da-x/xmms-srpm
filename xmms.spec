@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.10
-Release:        27%{?dist}
+Release:        28%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -208,6 +208,9 @@ update-desktop-database -q || :
 
 
 %changelog
+* Mon Aug 28 2006 Ville Skyttä <ville.skytta at iki.fi> - 1:1.2.10-28
+- Rebuild.
+
 * Wed Jun 21 2006 Ville Skyttä <ville.skytta at iki.fi> - 1:1.2.10-27
 - Split EsounD output plugin into -esd subpackage, don't filter dependencies.
 - Make menu entry symlink relative.
