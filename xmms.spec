@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.10
-Release:        28%{?dist}
+Release:        29%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -12,6 +12,7 @@ URL:            http://www.xmms.org/
 # $ tar jx --exclude "mpg123*" -f xmms-1.2.10.tar.bz2
 # $ tar jcf xmms-1.2.10.patched.tar.bz2 xmms-1.2.10
 Source0:        %{name}-%{version}.patched.tar.bz2
+Source1:        xmms.sh
 Source2:        xmms.xpm
 Source3:        rh_mp3.c
 # http://cvs.xmms.org/cvsweb.cgi/xmms/General/joystick/joy.c.diff?r1=1.8&r2=1.9
@@ -29,6 +30,7 @@ Patch9:         %{name}-underquoted.patch
 Patch10:        %{name}-alsa-backport.patch
 Patch11:        %{name}-1.2.10-gcc4.patch
 Patch12:        %{name}-1.2.10-crossfade-0.3.9.patch
+Patch13:        %{name}-1.2.10-pls-188603.patch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:  gtk+-devel
@@ -109,6 +111,8 @@ Files needed for building plug-ins for the X MultiMedia System.
 %patch11 -p1 -b .gcc4
 # Fix for crossfade >= 0.3.9 to work properly
 %patch12 -p1 -b .crossfade
+# Randomize playlists better
+%patch13 -p1 -b .pls
 # Avoid standard rpaths on lib64 archs, --disable-rpath doesn't do it
 sed -i -e 's|"/lib /usr/lib"|"/%{_lib} %{_libdir}"|' configure
 
@@ -140,6 +144,15 @@ find $RPM_BUILD_ROOT -name "*.la" | xargs rm -f
 
 # On FC5 x86_64, some get created even though we pass --disable-static
 rm -f $RPM_BUILD_ROOT%{_libdir}/xmms/*/*.a
+
+# https://bugzilla.redhat.com/213172
+for bin in xmms wmxmms ; do
+    install -Dpm 755 $RPM_BUILD_ROOT%{_bindir}/$bin \
+        $RPM_BUILD_ROOT%{_libexecdir}/$bin
+    sed -e "s|/usr/libexec/xmms|%{_libexecdir}/$bin|" %{SOURCE1} > \
+        $RPM_BUILD_ROOT%{_bindir}/$bin
+    chmod 755 $RPM_BUILD_ROOT%{_bindir}/$bin
+done
 
 # Link to the desktop menu entry included in redhat-menus
 install -dm 755 $RPM_BUILD_ROOT%{_datadir}/applications
@@ -175,6 +188,8 @@ update-desktop-database -q || :
 %doc AUTHORS ChangeLog COPYING FAQ NEWS TODO README
 %{_bindir}/xmms
 %{_bindir}/wmxmms
+%{_libexecdir}/xmms
+%{_libexecdir}/wmxmms
 %{_datadir}/applications/*.desktop
 %{_datadir}/icons/hicolor/*x*/apps/xmms.xpm
 %{_datadir}/xmms/
@@ -208,6 +223,10 @@ update-desktop-database -q || :
 
 
 %changelog
+* Mon Nov  6 2006 Ville Skyttä <ville.skytta at iki.fi> - 1:1.2.10-29
+- Work around incompatibilities with the Composite X extension (#213172).
+- Apply upstream playlist randomization improvements (#188603).
+
 * Mon Aug 28 2006 Ville Skyttä <ville.skytta at iki.fi> - 1:1.2.10-28
 - Rebuild.
 
