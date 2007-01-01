@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.10
-Release:        29%{?dist}
+Release:        30%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -60,6 +60,7 @@ streaming content and has a configurable interface.
 %package        libs
 Summary:        XMMS engine and core plugins
 Group:          System Environment/Libraries
+Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description    libs
 The X MultiMedia System player engine and core plugins.
@@ -223,6 +224,11 @@ update-desktop-database -q || :
 
 
 %changelog
+* Mon Jan  1 2007 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1:1.2.10-30
+- new package owner
+- added R to libs package
+- rebuild
+
 * Mon Nov  6 2006 Ville Skyttä <ville.skytta at iki.fi> - 1:1.2.10-29
 - Work around incompatibilities with the Composite X extension (#213172).
 - Apply upstream playlist randomization improvements (#188603).
