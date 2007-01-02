@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.10
-Release:        30%{?dist}
+Release:        31%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -60,7 +60,6 @@ streaming content and has a configurable interface.
 %package        libs
 Summary:        XMMS engine and core plugins
 Group:          System Environment/Libraries
-Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description    libs
 The X MultiMedia System player engine and core plugins.
@@ -224,6 +223,9 @@ update-desktop-database -q || :
 
 
 %changelog
+* Tue Jan  2 2007 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1:1.2.10-31
+- removed R from libs
+
 * Mon Jan  1 2007 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1:1.2.10-30
 - new package owner
 - added R to libs package
