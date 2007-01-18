@@ -31,6 +31,8 @@ Patch10:        %{name}-alsa-backport.patch
 Patch11:        %{name}-1.2.10-gcc4.patch
 Patch12:        %{name}-1.2.10-crossfade-0.3.9.patch
 Patch13:        %{name}-1.2.10-pls-188603.patch
+Patch14:	%{name}-1.2.10-configfile-safe-write.patch
+Patch15:	%{name}-1.2.10-reposition.patch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:  gtk+-devel
@@ -60,6 +62,7 @@ streaming content and has a configurable interface.
 %package        libs
 Summary:        XMMS engine and core plugins
 Group:          System Environment/Libraries
+Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description    libs
 The X MultiMedia System player engine and core plugins.
@@ -113,6 +116,8 @@ Files needed for building plug-ins for the X MultiMedia System.
 %patch12 -p1 -b .crossfade
 # Randomize playlists better
 %patch13 -p1 -b .pls
+%patch14 -p1
+%patch15 -p1
 # Avoid standard rpaths on lib64 archs, --disable-rpath doesn't do it
 sed -i -e 's|"/lib /usr/lib"|"/%{_lib} %{_libdir}"|' configure
 
@@ -223,8 +228,8 @@ update-desktop-database -q || :
 
 
 %changelog
-* Tue Jan  2 2007 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1:1.2.10-31
-- removed R from libs
+* Thu Jan 18 2007 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1:1.2.10-31
+- fixes for repositioning on mode change and .xmms file
 
 * Mon Jan  1 2007 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1:1.2.10-30
 - new package owner
