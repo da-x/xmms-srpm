@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.10
-Release:        32%{?dist}
+Release:        35%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -33,6 +33,7 @@ Patch12:        %{name}-1.2.10-crossfade-0.3.9.patch
 Patch13:        %{name}-1.2.10-pls-188603.patch
 Patch14:	%{name}-1.2.10-configfile-safe-write.patch
 Patch15:	%{name}-1.2.10-reposition.patch
+Patch16:	%{name}-1.2.10-ubuntu-CVE-2007-0653.patch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:  gtk+-devel
@@ -86,7 +87,7 @@ Files needed for building plug-ins for the X MultiMedia System.
 
 
 %prep
-%setup -q
+%setup -q 
 # Fix joystick plugin crashes
 %patch0 -p1 -b .joycrash
 # Set default output plugin to ALSA
@@ -117,6 +118,7 @@ Files needed for building plug-ins for the X MultiMedia System.
 %patch13 -p1 -b .pls
 %patch14 -p1
 %patch15 -p1
+%patch16 -p1
 # Avoid standard rpaths on lib64 archs, --disable-rpath doesn't do it
 sed -i -e 's|"/lib /usr/lib"|"/%{_lib} %{_libdir}"|' configure
 
@@ -133,45 +135,46 @@ done
     --with-pic \
     --disable-static
 find . -name Makefile | xargs sed -i -e s/-lpthread//g # old libtool, x86_64
-make %{?_smp_mflags}
+make
+# smp_flags removed due to build issues
 
 %{__cc} $RPM_OPT_FLAGS -fPIC -shared -Wl,-soname -Wl,librh_mp3.so \
     -o librh_mp3.so -I. $(gtk-config --cflags gtk) %{SOURCE3}
 
 
 %install
-rm -rf $RPM_BUILD_ROOT
-make install DESTDIR=$RPM_BUILD_ROOT
-install -pm 755 librh_mp3.so $RPM_BUILD_ROOT%{_libdir}/xmms/Input
-install -dm 755 $RPM_BUILD_ROOT%{_datadir}/xmms/Skins
-find $RPM_BUILD_ROOT -name "*.la" | xargs rm -f
+rm -rf %{buildroot}
+make install DESTDIR=%{buildroot}
+install -pm 755 librh_mp3.so %{buildroot}%{_libdir}/xmms/Input
+install -dm 755 %{buildroot}%{_datadir}/xmms/Skins
+find %{buildroot} -name "*.la" | xargs rm -f
 
 # On FC5 x86_64, some get created even though we pass --disable-static
-rm -f $RPM_BUILD_ROOT%{_libdir}/xmms/*/*.a
+rm -f %{buildroot}%{_libdir}/xmms/*/*.a
 
 # https://bugzilla.redhat.com/213172
 for bin in xmms wmxmms ; do
-    install -Dpm 755 $RPM_BUILD_ROOT%{_bindir}/$bin \
-        $RPM_BUILD_ROOT%{_libexecdir}/$bin
+    install -Dpm 755 %{buildroot}%{_bindir}/$bin \
+        %{buildroot}%{_libexecdir}/$bin
     sed -e "s|/usr/libexec/xmms|%{_libexecdir}/$bin|" %{SOURCE1} > \
-        $RPM_BUILD_ROOT%{_bindir}/$bin
-    chmod 755 $RPM_BUILD_ROOT%{_bindir}/$bin
+        %{buildroot}%{_bindir}/$bin
+    chmod 755 %{buildroot}%{_bindir}/$bin
 done
 
 # Link to the desktop menu entry included in redhat-menus
-install -dm 755 $RPM_BUILD_ROOT%{_datadir}/applications
+install -dm 755 %{buildroot}%{_datadir}/applications
 ln -s ../desktop-menu-patches/redhat-audio-player.desktop \
-    $RPM_BUILD_ROOT%{_datadir}/applications
+    %{buildroot}%{_datadir}/applications
 install -Dpm 644 %{SOURCE2} \
-    $RPM_BUILD_ROOT%{_datadir}/icons/hicolor/48x48/apps/xmms.xpm
+    %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/xmms.xpm
 
-install -Dpm 644 xmms.pc $RPM_BUILD_ROOT%{_libdir}/pkgconfig/xmms.pc
+#install -Dpm 644 xmms.pc %{buildroot}%{_libdir}/pkgconfig/xmms.pc
 
 %find_lang %{name}
 
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 
 %post
@@ -222,11 +225,16 @@ update-desktop-database -q || :
 %{_bindir}/xmms-config
 %{_includedir}/xmms/
 %{_libdir}/libxmms.so
-%{_libdir}/pkgconfig/xmms.pc
 %{_datadir}/aclocal/xmms.m4
 
 
 %changelog
+* Sun Apr 01 2007 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1:1.2.10-35
+- added CVE fix for buffer problem
+
+* Sat Mar 10 2007 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1:1.2.10-34
+- built from cvs tarball (amended to remove mp3)
+
 * Fri Jan 19 2007 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1:1.2.10-32
 - removed R xmms in libs
 
