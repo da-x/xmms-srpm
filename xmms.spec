@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.10
-Release:        35%{?dist}
+Release:        36%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -168,7 +168,7 @@ ln -s ../desktop-menu-patches/redhat-audio-player.desktop \
 install -Dpm 644 %{SOURCE2} \
     %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/xmms.xpm
 
-#install -Dpm 644 xmms.pc %{buildroot}%{_libdir}/pkgconfig/xmms.pc
+install -Dpm 644 xmms.pc %{buildroot}%{_libdir}/pkgconfig/xmms.pc
 
 %find_lang %{name}
 
@@ -226,9 +226,13 @@ update-desktop-database -q || :
 %{_includedir}/xmms/
 %{_libdir}/libxmms.so
 %{_datadir}/aclocal/xmms.m4
+%{_libdir}/pkgconfig/xmms.pc
 
 
 %changelog
+* Fri Apr 13 2007 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1:1.2.10-36
+- add back in the .pc file
+
 * Sun Apr 01 2007 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1:1.2.10-35
 - added CVE fix for buffer problem
 
