@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.10
-Release:        36%{?dist}
+Release:        37%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -230,6 +230,9 @@ update-desktop-database -q || :
 
 
 %changelog
+* Mon Feb 18 2008 Jesse Keating <jkeating@redhat.com> - 1.2.10-37
+- Rebuild for new mikmod
+
 * Fri Apr 13 2007 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1:1.2.10-36
 - add back in the .pc file
 
