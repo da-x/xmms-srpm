@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.10
-Release:        37%{?dist}
+Release:        38%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -230,6 +230,9 @@ update-desktop-database -q || :
 
 
 %changelog
+* Tue Feb 19 2008 Fedora Release Engineering <rel-eng@fedoraproject.org> - 1:1.2.10-38
+- Autorebuild for GCC 4.3
+
 * Mon Feb 18 2008 Jesse Keating <jkeating@redhat.com> - 1.2.10-37
 - Rebuild for new mikmod
 
