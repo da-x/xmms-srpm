@@ -1,11 +1,11 @@
 Name:           xmms
 Version:        1.2.10
-Release:        38%{?dist}
+Release:        39%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
 Group:          Applications/Multimedia
-License:        GPL
+License:        GPLv2+
 URL:            http://www.xmms.org/
 # http://www.xmms.org/download.php, to recreate the tarball:
 # $ wget http://www.xmms.org/files/1.2.x/xmms-1.2.10.tar.bz2
@@ -230,6 +230,9 @@ update-desktop-database -q || :
 
 
 %changelog
+* Mon Aug 11 2008 Jason L Tibbitts III <tibbs@math.uh.edu> - 1.2.10-39
+- Fix license tag.
+
 * Tue Feb 19 2008 Fedora Release Engineering <rel-eng@fedoraproject.org> - 1:1.2.10-38
 - Autorebuild for GCC 4.3
 
