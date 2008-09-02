@@ -1,39 +1,34 @@
 Name:           xmms
-Version:        1.2.10
-Release:        39%{?dist}
+Version:        1.2.11
+Release:        1.20071117cvs%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
 Group:          Applications/Multimedia
-License:        GPLv2+
+License:        GPLv2
 URL:            http://www.xmms.org/
 # http://www.xmms.org/download.php, to recreate the tarball:
 # $ wget http://www.xmms.org/files/1.2.x/xmms-1.2.10.tar.bz2
 # $ tar jx --exclude "mpg123*" -f xmms-1.2.10.tar.bz2
 # $ tar jcf xmms-1.2.10.patched.tar.bz2 xmms-1.2.10
-Source0:        %{name}-%{version}.patched.tar.bz2
+Source0:        %{name}-%{version}-20071117cvs.patched.tar.bz2
 Source1:        xmms.sh
 Source2:        xmms.xpm
 Source3:        rh_mp3.c
 # http://cvs.xmms.org/cvsweb.cgi/xmms/General/joystick/joy.c.diff?r1=1.8&r2=1.9
-Patch0:         %{name}-1.2.10-joycrash.patch
 Patch1:         %{name}-1.2.6-audio.patch
 Patch2:         %{name}-1.2.6-lazy.patch
 Patch3:         %{name}-1.2.8-default-skin.patch
-Patch4:         %{name}-1.2.9-nomp3.patch
-Patch5:         %{name}-1.2.8-arts.patch
-Patch6:         %{name}-1.2.8-alsalib.patch
+Patch4:         %{name}-1.2.11-nomp3.patch
+Patch5:         %{name}-1.2.11-arts.patch
+Patch6:         %{name}-1.2.11-alsalib.patch
 Patch7:         %{name}-cd-mountpoint.patch
 # Patch8 on top of patch4
-Patch8:         %{name}-1.2.10-multidevel.patch
-Patch9:         %{name}-underquoted.patch
-Patch10:        %{name}-alsa-backport.patch
+Patch8:         %{name}-1.2.11-multilib.patch
 Patch11:        %{name}-1.2.10-gcc4.patch
 Patch12:        %{name}-1.2.10-crossfade-0.3.9.patch
-Patch13:        %{name}-1.2.10-pls-188603.patch
 Patch14:	%{name}-1.2.10-configfile-safe-write.patch
 Patch15:	%{name}-1.2.10-reposition.patch
-Patch16:	%{name}-1.2.10-ubuntu-CVE-2007-0653.patch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:  gtk+-devel
@@ -87,9 +82,7 @@ Files needed for building plug-ins for the X MultiMedia System.
 
 
 %prep
-%setup -q 
-# Fix joystick plugin crashes
-%patch0 -p1 -b .joycrash
+%setup -q -n %{name}-%{version}-20071117cvs
 # Set default output plugin to ALSA
 %patch1 -p1 -b .audio
 # Use RTLD_LAZY, not RTLD_NOW
@@ -106,19 +99,11 @@ Files needed for building plug-ins for the X MultiMedia System.
 %patch7 -p0 -b .cd-mountpoint
 # Avoid multilib devel conflicts
 %patch8 -p1 -b .multidevel
-# Fix m4 underquoted warning
-%patch9 -p1 -b .underquoted
-# Backport for recent ALSA
-%patch10 -p0 -b .alsa-backport
-# Fix compilation with gcc4
-%patch11 -p1 -b .gcc4
 # Fix for crossfade >= 0.3.9 to work properly
 %patch12 -p1 -b .crossfade
 # Randomize playlists better
-%patch13 -p1 -b .pls
 %patch14 -p1
 %patch15 -p1
-%patch16 -p1
 # Avoid standard rpaths on lib64 archs, --disable-rpath doesn't do it
 sed -i -e 's|"/lib /usr/lib"|"/%{_lib} %{_libdir}"|' configure
 
@@ -230,8 +215,11 @@ update-desktop-database -q || :
 
 
 %changelog
-* Mon Aug 11 2008 Jason L Tibbitts III <tibbs@math.uh.edu> - 1.2.10-39
-- Fix license tag.
+* Tue Sep 02 2008 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1.2.11-20071117cvs-1
+- Bump to 1.2.11 devel branch
+- Alter license
+- Removed unused patches
+- Fixed old patches to work with new version
 
 * Tue Feb 19 2008 Fedora Release Engineering <rel-eng@fedoraproject.org> - 1:1.2.10-38
 - Autorebuild for GCC 4.3

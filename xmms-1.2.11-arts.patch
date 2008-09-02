@@ -1,6 +1,6 @@
---- xmms-1.2.8/xmms/main.c.orig	2003-09-10 12:35:02.000000000 +0200
-+++ xmms-1.2.8/xmms/main.c	2003-10-07 16:38:28.000000000 +0200
-@@ -303,6 +303,39 @@
+--- xmms-1.2.11-20071117cvs/xmms/main.c	2008-09-02 19:08:34.000000000 +0100
++++ xmms-1.2.11-20071117cvs/xmms/main-new.c	2008-09-02 19:16:29.000000000 +0100
+@@ -307,6 +307,40 @@
  	sizeof(mainwin_general_menu_entries) / 
  	sizeof(mainwin_general_menu_entries[0]);
  
@@ -37,10 +37,11 @@
 +}
 +
 +
++
  static void make_xmms_dir(void)
  {
  	gchar *filename;
-@@ -499,6 +532,19 @@
+@@ -503,6 +537,19 @@
  		cfg.skin = g_strdup("/usr/share/xmms/Skins/Bluecurve-xmms.zip");
  	if (cfg.outputplugin == NULL)
  	{
@@ -58,9 +59,9 @@
 +	if (cfg.outputplugin == NULL)
 +	{
  #ifdef HAVE_OSS
- 		cfg.outputplugin = g_strdup_printf("%s/%s/libesdout.so", PLUGIN_DIR, plugin_dir_list[0]);
+ 		cfg.outputplugin = g_strdup_printf("%s/%s/libALSA.so", PLUGIN_DIR, plugin_dir_list[0]);
  #elif defined(sun)
-@@ -511,6 +557,13 @@
+@@ -515,6 +562,13 @@
  		cfg.outputplugin = g_strdup("");
  #endif
  	}

@@ -1,5 +1,5 @@
---- xmms-1.2.8/xmms/input.c.nomp3	2003-07-14 09:24:28.000000000 -0400
-+++ xmms-1.2.8/xmms/input.c	2003-09-08 15:11:43.000000000 -0400
+--- xmms-1.2.11-20071117cvs/xmms/input.c	2005-05-15 22:46:35.000000000 +0100
++++ xmms-1.2.11-20071117cvs/xmms/input-new.c	2008-09-02 19:07:19.000000000 +0100
 @@ -17,6 +17,7 @@
   *  along with this program; if not, write to the Free Software
   *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
@@ -8,12 +8,12 @@
  #include "xmms.h"
  #include "fft.h"
  #include "libxmms/titlestring.h"
-@@ -228,16 +229,22 @@
+@@ -228,16 +229,21 @@
  {
  	GList *node;
  	InputPlugin *ip;
+-
 +	InputPlugin *rhmp3 = NULL;
- 
  	node = get_input_list();
  	while (node)
  	{
@@ -32,26 +32,28 @@
  	return FALSE;
  }
  
-@@ -245,6 +252,7 @@
+@@ -245,7 +251,7 @@
  {
  	GList *node;
  	InputPlugin *ip;
+-
 +	InputPlugin *rhmp3 = NULL;
- 
  	node = get_input_list();
  	if (get_current_output_plugin() == NULL)
-@@ -258,7 +266,9 @@
+ 	{
+@@ -263,8 +269,9 @@
  	while (node)
  	{
  		ip = node->data;
 -		if (ip && !g_list_find(disabled_iplugins, ip) &&
+-		    ip->is_our_file(filename))
 +		if (ip && !strcmp(basename(ip->filename),"librh_mp3.so"))
 +			rhmp3 = ip;
-+		else if (ip && !g_list_find(disabled_iplugins, ip) &&
- 		    ip->is_our_file(filename))
++		else if (ip && !g_list_find(disabled_iplugins, ip) && 			    ip->is_our_file(filename))
  		{
  			set_current_input_plugin(ip);
-@@ -270,6 +280,15 @@
+ 			ip->output = get_current_output_plugin();
+@@ -274,6 +281,15 @@
  		}
  		node = node->next;
  	}
@@ -64,29 +66,30 @@
 +		ip_data->playing = TRUE;
 +		return;
 +	}
- 	/* We set the playing flag even if no inputplugin
- 	   recognizes the file. This way we are sure it will be skipped. */
- 	ip_data->playing = TRUE;
---- xmms-1.2.8/Input/Makefile.am.nomp3	2002-03-18 09:29:42.000000000 -0500
-+++ xmms-1.2.8/Input/Makefile.am	2003-09-08 15:12:24.000000000 -0400
+ 	set_current_input_plugin(NULL);
+ }
+ 
+ 
+--- xmms-1.2.11-20071117cvs/Input/Makefile.am	2002-03-15 23:10:06.000000000 +0000
++++ xmms-1.2.11-20071117cvs/Input/Makefile-new.am	2008-09-02 13:50:06.000000000 +0100
 @@ -1,3 +1,3 @@
 -ALL_PLUGINS = wav mpg123 mikmod cdaudio tonegen vorbis
 +ALL_PLUGINS = wav mikmod cdaudio tonegen vorbis
  SUBDIRS = @INPUT_PLUGINS@
  
---- xmms-1.2.8/Input/Makefile.in.nomp3	2003-09-04 17:01:25.000000000 -0400
-+++ xmms-1.2.8/Input/Makefile.in	2003-09-08 15:12:40.000000000 -0400
-@@ -169,7 +169,7 @@
+--- xmms-1.2.11-20071117cvs/Input/Makefile.in	2007-11-17 22:45:30.000000000 +0000
++++ xmms-1.2.11-20071117cvs/Input/Makefile-new.in	2008-09-02 13:51:16.000000000 +0100
+@@ -260,7 +260,7 @@
  sysconfdir = @sysconfdir@
  target_alias = @target_alias@
  xmmsdir = @xmmsdir@
 -ALL_PLUGINS = wav mpg123 mikmod cdaudio tonegen vorbis
 +ALL_PLUGINS = wav mikmod cdaudio tonegen vorbis
  SUBDIRS = @INPUT_PLUGINS@
- subdir = Input
- ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
---- xmms-1.2.8/po/POTFILES.in.nomp3	2003-08-13 08:59:04.000000000 -0400
-+++ xmms-1.2.8/po/POTFILES.in	2003-09-08 15:13:06.000000000 -0400
+ all: all-recursive
+ 
+--- xmms-1.2.11-20071117cvs/po/POTFILES.in	2004-01-17 22:45:07.000000000 +0000
++++ xmms-1.2.11-20071117cvs/po/POTFILES-new.in	2008-09-02 13:52:14.000000000 +0100
 @@ -19,11 +19,6 @@
  Input/cdaudio/http.c
  Input/mikmod/drv_xmms.c
@@ -99,6 +102,7 @@
  Input/tonegen/tonegen.c
  Input/vorbis/configure.c
  Input/vorbis/fileinfo.c
+
 --- xmms-1.2.9/configure.cow	2004-01-28 21:14:46.418517318 -0500
 +++ xmms-1.2.9/configure	2004-01-28 21:14:57.290123348 -0500
 @@ -19192,7 +19192,7 @@
