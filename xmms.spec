@@ -1,11 +1,11 @@
 Name:           xmms
 Version:        1.2.11
-Release:        1.20071117cvs%{?dist}
+Release:        1.20071117cvs.1%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
 Group:          Applications/Multimedia
-License:        GPLv2
+License:        GPLv2+
 URL:            http://www.xmms.org/
 # http://www.xmms.org/download.php, to recreate the tarball:
 # $ wget http://www.xmms.org/files/1.2.x/xmms-1.2.10.tar.bz2
@@ -215,6 +215,9 @@ update-desktop-database -q || :
 
 
 %changelog
+* Wed Sep 10 2008 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1.2.11-20071117cvs-1.1
+- Reverted license to gplv2+ (oopsy!)
+
 * Tue Sep 02 2008 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1.2.11-20071117cvs-1
 - Bump to 1.2.11 devel branch
 - Alter license
