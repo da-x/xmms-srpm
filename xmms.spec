@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.11
-Release:        1.20071117cvs.1%{?dist}
+Release:        3.20071117cvs%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -45,7 +45,7 @@ BuildRequires:  libXt-devel
 BuildRequires:  libSM-devel
 BuildRequires:  libXxf86vm-devel
 
-Requires:       unzip
+Requires:       unzip libcanberra-gtk2 gtk2 at-spi
 Requires:       %{_datadir}/desktop-menu-patches/redhat-audio-player.desktop
 Requires(post): desktop-file-utils >= 0.9
 Requires(postun): desktop-file-utils >= 0.9
@@ -75,7 +75,7 @@ Summary:        Files required for XMMS plug-in development
 Group:          Development/Libraries
 Requires:       %{name}-libs = %{epoch}:%{version}-%{release}
 Requires:       gtk+-devel
-Requires:       pkgconfig
+Requires:       pkgconfig 
 
 %description    devel
 Files needed for building plug-ins for the X MultiMedia System.
@@ -215,6 +215,12 @@ update-desktop-database -q || :
 
 
 %changelog
+* Sat Nov 29 2008 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1.2.11-20071117cvs-3
+- Fix multilib patch
+
+* Thu Sep 18 2008 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1.2.11-20071117cvs-2
+- Additional requires
+
 * Wed Sep 10 2008 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1.2.11-20071117cvs-1.1
 - Reverted license to gplv2+ (oopsy!)
 

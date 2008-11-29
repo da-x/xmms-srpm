@@ -81,7 +81,7 @@
  
  if test "$echo_visualization_plugin_dir" = "yes"; then
 -    echo $visualization_plugin_dir
-+    pkg-config xmms --variable=visualization_plugin_dirr
++    pkg-config xmms --variable=visualization_plugin_dir
  fi
  
  if test "$echo_input_plugin_dir" = "yes"; then
