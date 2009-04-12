@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.11
-Release:        4.20071117cvs%{?dist}
+Release:        5.20071117cvs%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -49,6 +49,9 @@ Requires:       unzip libcanberra-gtk2 gtk2 at-spi
 Requires:       %{_datadir}/desktop-menu-patches/redhat-audio-player.desktop
 Requires(post): desktop-file-utils >= 0.9
 Requires(postun): desktop-file-utils >= 0.9
+
+# Skin packages can require this from xmms and all GUI compatible players
+Provides:       xmms-gui
 
 %description
 XMMS is a multimedia (Ogg Vorbis, CDs) player for the X Window System
@@ -215,6 +218,9 @@ update-desktop-database -q || :
 
 
 %changelog
+* Sun Apr 12 2009 Matthias Saou <http://freshrpms.net/> 1:1.2.11-5.20071117cvs
+- Add "xmms-gui" provides, to be required from xmms-skins package (#470135).
+
 * Thu Feb 26 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:1.2.11-4.20071117cvs
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_11_Mass_Rebuild
 
