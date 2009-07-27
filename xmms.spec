@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.11
-Release:        5.20071117cvs%{?dist}
+Release:        6.20071117cvs%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -218,6 +218,9 @@ update-desktop-database -q || :
 
 
 %changelog
+* Mon Jul 27 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:1.2.11-6.20071117cvs
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_12_Mass_Rebuild
+
 * Sun Apr 12 2009 Matthias Saou <http://freshrpms.net/> 1:1.2.11-5.20071117cvs
 - Add "xmms-gui" provides, to be required from xmms-skins package (#470135).
 
