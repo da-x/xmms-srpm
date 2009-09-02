@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.11
-Release:        6.20071117cvs%{?dist}
+Release:        7.20071117cvs%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -25,6 +25,7 @@ Patch6:         %{name}-1.2.11-alsalib.patch
 Patch7:         %{name}-cd-mountpoint.patch
 # Patch8 on top of patch4
 Patch8:         %{name}-1.2.11-multilib.patch
+Patch9:		%{name}-play.patch
 Patch11:        %{name}-1.2.10-gcc4.patch
 Patch12:        %{name}-1.2.10-crossfade-0.3.9.patch
 Patch14:	%{name}-1.2.10-configfile-safe-write.patch
@@ -107,6 +108,7 @@ Files needed for building plug-ins for the X MultiMedia System.
 # Randomize playlists better
 %patch14 -p1
 %patch15 -p1
+%patch9 -p1 -b .playonclick
 # Avoid standard rpaths on lib64 archs, --disable-rpath doesn't do it
 sed -i -e 's|"/lib /usr/lib"|"/%{_lib} %{_libdir}"|' configure
 
@@ -218,6 +220,9 @@ update-desktop-database -q || :
 
 
 %changelog
+* Wed Sep 02 2009 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1:1.2.11-7.20071117cvs
+- Fix play on click bug (BZ434692)
+
 * Mon Jul 27 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:1.2.11-6.20071117cvs
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_12_Mass_Rebuild
 
