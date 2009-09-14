@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.11
-Release:        7.20071117cvs%{?dist}
+Release:        8.20071117cvs%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -27,7 +27,8 @@ Patch7:         %{name}-cd-mountpoint.patch
 Patch8:         %{name}-1.2.11-multilib.patch
 Patch9:		%{name}-play.patch
 Patch11:        %{name}-1.2.10-gcc4.patch
-Patch12:        %{name}-1.2.10-crossfade-0.3.9.patch
+# From xmms-crossfade-0.3.14/patches/ adapted from 1.2.10 to 1.2.11
+Patch12:        %{name}-1.2.11-is_quitting.patch
 Patch14:	%{name}-1.2.10-configfile-safe-write.patch
 Patch15:	%{name}-1.2.10-reposition.patch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -103,7 +104,7 @@ Files needed for building plug-ins for the X MultiMedia System.
 %patch7 -p0 -b .cd-mountpoint
 # Avoid multilib devel conflicts
 %patch8 -p1 -b .multidevel
-# Fix for crossfade >= 0.3.9 to work properly
+# Fix for crossfade >= 0.3.14 to work properly
 %patch12 -p1 -b .crossfade
 # Randomize playlists better
 %patch14 -p1
@@ -220,6 +221,9 @@ update-desktop-database -q || :
 
 
 %changelog
+* Mon Sep 14 2009 Matthias Saou <http://freshrpms.net/> 1:1.2.11-8.20071117cvs
+- Update crossfade patch to the latest version (#518176).
+
 * Wed Sep 02 2009 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1:1.2.11-7.20071117cvs
 - Fix play on click bug (BZ434692)
 
