@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.11
-Release:        8.20071117cvs%{?dist}
+Release:        9.20071117cvs%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -169,16 +169,21 @@ rm -rf %{buildroot}
 
 
 %post
-gtk-update-icon-cache -qf %{_datadir}/icons/hicolor &>/dev/null || :
-update-desktop-database -q || :
+touch --no-create %{_datadir}/icons/hicolor &> /dev/null || :
 
 %post libs -p /sbin/ldconfig
 
 %postun
+if [ $1 -eq 0 ]; then
 gtk-update-icon-cache -qf %{_datadir}/icons/hicolor &>/dev/null || :
 update-desktop-database -q || :
+fi
 
 %postun libs -p /sbin/ldconfig
+
+%posttrans
+gtk-update-icon-cache -q %{_datadir}/icons/hicolor &>/dev/null || :
+update-desktop-database -q || :
 
 
 %files -f %{name}.lang
@@ -221,6 +226,9 @@ update-desktop-database -q || :
 
 
 %changelog
+* Wed Sep 23 2009 Rex Dieter <rdieter@fedoraproject.org> 1:1.2.11-9.20071117cvs
+- optimize desktop/icon scriptlets
+
 * Mon Sep 14 2009 Matthias Saou <http://freshrpms.net/> 1:1.2.11-8.20071117cvs
 - Update crossfade patch to the latest version (#518176).
 
