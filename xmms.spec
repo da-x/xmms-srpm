@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.11
-Release:        9.20071117cvs%{?dist}
+Release:        10.20071117cvs%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -15,6 +15,7 @@ Source0:        %{name}-%{version}-20071117cvs.patched.tar.bz2
 Source1:        xmms.sh
 Source2:        xmms.xpm
 Source3:        rh_mp3.c
+Source4:        xmms.desktop
 # http://cvs.xmms.org/cvsweb.cgi/xmms/General/joystick/joy.c.diff?r1=1.8&r2=1.9
 Patch1:         %{name}-1.2.6-audio.patch
 Patch2:         %{name}-1.2.6-lazy.patch
@@ -46,11 +47,11 @@ BuildRequires:  libGL-devel
 BuildRequires:  libXt-devel
 BuildRequires:  libSM-devel
 BuildRequires:  libXxf86vm-devel
+BuildRequires:  desktop-file-utils
 
 Requires:       unzip libcanberra-gtk2 gtk2 at-spi
-Requires:       %{_datadir}/desktop-menu-patches/redhat-audio-player.desktop
-Requires(post): desktop-file-utils >= 0.9
-Requires(postun): desktop-file-utils >= 0.9
+Requires(post): desktop-file-utils
+Requires(postun): desktop-file-utils
 
 # Skin packages can require this from xmms and all GUI compatible players
 Provides:       xmms-gui
@@ -152,10 +153,9 @@ for bin in xmms wmxmms ; do
     chmod 755 %{buildroot}%{_bindir}/$bin
 done
 
-# Link to the desktop menu entry included in redhat-menus
-install -dm 755 %{buildroot}%{_datadir}/applications
-ln -s ../desktop-menu-patches/redhat-audio-player.desktop \
-    %{buildroot}%{_datadir}/applications
+# Desktop menu entry
+desktop-file-install --dir=%{buildroot}%{_datadir}/applications %{SOURCE4}
+# Desktop menu icon
 install -Dpm 644 %{SOURCE2} \
     %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/xmms.xpm
 
@@ -169,21 +169,22 @@ rm -rf %{buildroot}
 
 
 %post
-touch --no-create %{_datadir}/icons/hicolor &> /dev/null || :
+touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
 
 %post libs -p /sbin/ldconfig
 
 %postun
 if [ $1 -eq 0 ]; then
-gtk-update-icon-cache -qf %{_datadir}/icons/hicolor &>/dev/null || :
-update-desktop-database -q || :
+    touch --no-create %{_datadir}/icons/hicolor &>/dev/null
+    gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
+    update-desktop-database &>/dev/null || :
 fi
 
 %postun libs -p /sbin/ldconfig
 
 %posttrans
-gtk-update-icon-cache -q %{_datadir}/icons/hicolor &>/dev/null || :
-update-desktop-database -q || :
+gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
+update-desktop-database &>/dev/null || :
 
 
 %files -f %{name}.lang
@@ -193,7 +194,7 @@ update-desktop-database -q || :
 %{_bindir}/wmxmms
 %{_libexecdir}/xmms
 %{_libexecdir}/wmxmms
-%{_datadir}/applications/*.desktop
+%{_datadir}/applications/xmms.desktop
 %{_datadir}/icons/hicolor/*x*/apps/xmms.xpm
 %{_datadir}/xmms/
 %{_mandir}/man1/*xmms.1*
@@ -226,6 +227,11 @@ update-desktop-database -q || :
 
 
 %changelog
+* Wed Dec  9 2009 Matthias Saou <http://freshrpms.net/> 1:1.2.11-10.20071117cvs
+- Include xmms.desktop, taken from redhat-audio-player.desktop which is no
+  longer provided by any package (it was about time).
+- Update scriplets to what I understand is best from ScriptletSnippets page.
+  
 * Wed Sep 23 2009 Rex Dieter <rdieter@fedoraproject.org> 1:1.2.11-9.20071117cvs
 - optimize desktop/icon scriptlets
 
