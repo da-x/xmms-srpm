@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.11
-Release:        10.20071117cvs%{?dist}
+Release:        11.20071117cvs%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -32,6 +32,7 @@ Patch11:        %{name}-1.2.10-gcc4.patch
 Patch12:        %{name}-1.2.11-is_quitting.patch
 Patch14:	%{name}-1.2.10-configfile-safe-write.patch
 Patch15:	%{name}-1.2.10-reposition.patch
+Patch16:	%{name}-1.2.11-dso.patch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:  gtk+-devel
@@ -111,6 +112,7 @@ Files needed for building plug-ins for the X MultiMedia System.
 %patch14 -p1
 %patch15 -p1
 %patch9 -p1 -b .playonclick
+%patch16 -p1 -b .dso
 # Avoid standard rpaths on lib64 archs, --disable-rpath doesn't do it
 sed -i -e 's|"/lib /usr/lib"|"/%{_lib} %{_libdir}"|' configure
 
@@ -126,7 +128,8 @@ done
     --enable-ipv6 \
     --with-pic \
     --disable-static
-find . -name Makefile | xargs sed -i -e s/-lpthread//g # old libtool, x86_64
+# causes problems with dso linking
+#find . -name Makefile | xargs sed -i -e s/-lpthread//g # old libtool, x86_64
 make
 # smp_flags removed due to build issues
 
@@ -227,6 +230,9 @@ update-desktop-database &>/dev/null || :
 
 
 %changelog
+* Sat Feb 20 2010 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1:1.2.11-11.20071117cvs
+- DSO linking fix
+
 * Wed Dec  9 2009 Matthias Saou <http://freshrpms.net/> 1:1.2.11-10.20071117cvs
 - Include xmms.desktop, taken from redhat-audio-player.desktop which is no
   longer provided by any package (it was about time).
