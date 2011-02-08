@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.11
-Release:        11.20071117cvs%{?dist}
+Release:        12.20071117cvs%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -230,6 +230,9 @@ update-desktop-database &>/dev/null || :
 
 
 %changelog
+* Mon Feb 07 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:1.2.11-12.20071117cvs
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
+
 * Sat Feb 20 2010 Paul F. Johnson <paul@all-the-johnsons.co.uk> 1:1.2.11-11.20071117cvs
 - DSO linking fix
 
