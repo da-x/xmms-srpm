@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.11
-Release:        12.20071117cvs%{?dist}
+Release:        13.20071117cvs%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -33,7 +33,6 @@ Patch12:        %{name}-1.2.11-is_quitting.patch
 Patch14:	%{name}-1.2.10-configfile-safe-write.patch
 Patch15:	%{name}-1.2.10-reposition.patch
 Patch16:	%{name}-1.2.11-dso.patch
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:  gtk+-devel
 BuildRequires:  esound-devel
@@ -138,7 +137,6 @@ make
 
 
 %install
-rm -rf %{buildroot}
 make install DESTDIR=%{buildroot}
 install -pm 755 librh_mp3.so %{buildroot}%{_libdir}/xmms/Input
 install -dm 755 %{buildroot}%{_datadir}/xmms/Skins
@@ -167,10 +165,6 @@ install -Dpm 644 xmms.pc %{buildroot}%{_libdir}/pkgconfig/xmms.pc
 %find_lang %{name}
 
 
-%clean
-rm -rf %{buildroot}
-
-
 %post
 touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
 
@@ -191,7 +185,6 @@ update-desktop-database &>/dev/null || :
 
 
 %files -f %{name}.lang
-%defattr(-,root,root,-)
 %doc AUTHORS ChangeLog COPYING FAQ NEWS TODO README
 %{_bindir}/xmms
 %{_bindir}/wmxmms
@@ -203,7 +196,6 @@ update-desktop-database &>/dev/null || :
 %{_mandir}/man1/*xmms.1*
 
 %files libs
-%defattr(-,root,root,-)
 %doc COPYING
 %{_libdir}/libxmms.so.*
 %dir %{_libdir}/xmms/
@@ -230,6 +222,9 @@ update-desktop-database &>/dev/null || :
 
 
 %changelog
+* Thu Jul 14 2011 Tom Callaway <spot@fedoraproject.org> - 1:1.2.11-13.20071117cvs
+- minor spec cleanup and rebuild
+
 * Mon Feb 07 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:1.2.11-12.20071117cvs
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
 
