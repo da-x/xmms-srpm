@@ -1,16 +1,16 @@
 Name:           xmms
 Version:        1.2.11
-Release:        13.20071117cvs%{?dist}
+Release:        14.20071117cvs%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
 Group:          Applications/Multimedia
 License:        GPLv2+
-URL:            http://www.xmms.org/
+URL:            http://legacy.xmms2.org/
 # http://www.xmms.org/download.php, to recreate the tarball:
-# $ wget http://www.xmms.org/files/1.2.x/xmms-1.2.10.tar.bz2
-# $ tar jx --exclude "mpg123*" -f xmms-1.2.10.tar.bz2
-# $ tar jcf xmms-1.2.10.patched.tar.bz2 xmms-1.2.10
+# $ wget http://legacy.xmms2.org/xmms-1.2.11.tar.bz2
+# $ tar jx --exclude "mpg123*" -f xmms-1.2.11.tar.bz2
+# $ tar jcf xmms-1.2.11.patched.tar.bz2 xmms-1.2.11
 Source0:        %{name}-%{version}-20071117cvs.patched.tar.bz2
 Source1:        xmms.sh
 Source2:        xmms.xpm
@@ -222,6 +222,9 @@ update-desktop-database &>/dev/null || :
 
 
 %changelog
+* Thu Jul 14 2011 Tom Callaway <spot@fedoraproject.org> - 1:1.2.11-14.20071117cvs
+- fix url (bz 672011)
+
 * Thu Jul 14 2011 Tom Callaway <spot@fedoraproject.org> - 1:1.2.11-13.20071117cvs
 - minor spec cleanup and rebuild
 
