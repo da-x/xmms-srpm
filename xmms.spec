@@ -33,6 +33,8 @@ Patch12:        %{name}-1.2.11-is_quitting.patch
 Patch14:	%{name}-1.2.10-configfile-safe-write.patch
 Patch15:	%{name}-1.2.10-reposition.patch
 Patch16:	%{name}-1.2.11-dso.patch
+Patch17:	xmms-1.2.10-ubuntu-CVE-2007-0653.patch
+Patch18:	xmms-alsa-fix-loop.patch
 
 BuildRequires:  gtk+-devel
 BuildRequires:  esound-devel
@@ -112,6 +114,8 @@ Files needed for building plug-ins for the X MultiMedia System.
 %patch15 -p1
 %patch9 -p1 -b .playonclick
 %patch16 -p1 -b .dso
+%patch17 -p1 -b .CVE-2007-0653
+%patch18 -p1 -b .fix-loop
 # Avoid standard rpaths on lib64 archs, --disable-rpath doesn't do it
 sed -i -e 's|"/lib /usr/lib"|"/%{_lib} %{_libdir}"|' configure
 
