@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.11
-Release:        15.20071117cvs%{?dist}
+Release:        16.20071117cvs%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -226,6 +226,9 @@ update-desktop-database &>/dev/null || :
 
 
 %changelog
+* Sat Jan 14 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:1.2.11-16.20071117cvs
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
+
 * Fri Jul 15 2011 Tom Callaway <spot@fedoraproject.org> - 1:1.2.11-15.20071117cvs
 - fix alsa plugin loop code to, well, stop looping when the track is done
 - fix desktop file to enqueue and play files
