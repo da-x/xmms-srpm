@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.11
-Release:        17.20071117cvs%{?dist}
+Release:        18.20071117cvs%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -36,8 +36,11 @@ Patch16:	%{name}-1.2.11-dso.patch
 Patch17:	xmms-1.2.10-ubuntu-CVE-2007-0653.patch
 Patch18:	xmms-alsa-fix-loop.patch
 
+# This plugin is gone. Esound is gone. 2001 is gone.
+Provides:	xmms-esd = %{epoch}:%{version}-%{release}
+Obsoletes:	xmms-esd < 1:18.20071117cvs
+
 BuildRequires:  gtk+-devel
-BuildRequires:  esound-devel
 BuildRequires:  arts-devel
 BuildRequires:  alsa-lib-devel
 BuildRequires:  libogg-devel
@@ -69,14 +72,6 @@ Group:          System Environment/Libraries
 
 %description    libs
 The X MultiMedia System player engine and core plugins.
-
-%package        esd
-Summary:        EsounD output plugin for XMMS
-Group:          System Environment/Libraries
-Requires:       %{name}-libs = %{epoch}:%{version}-%{release}
-
-%description    esd
-EsounD output plugin for the X MultiMedia System.
 
 %package        devel
 Summary:        Files required for XMMS plug-in development
@@ -130,6 +125,7 @@ done
     --enable-texthack \
     --enable-ipv6 \
     --with-pic \
+    --disable-esd \
     --disable-static
 # causes problems with dso linking
 #find . -name Makefile | xargs sed -i -e s/-lpthread//g # old libtool, x86_64
@@ -212,10 +208,6 @@ update-desktop-database &>/dev/null || :
 %{_libdir}/xmms/Output/libdisk_writer.so
 %{_libdir}/xmms/Visualization/
 
-%files esd
-%defattr(-,root,root,-)
-%{_libdir}/xmms/Output/libesdout.so
-
 %files devel
 %defattr(-,root,root,-)
 %{_bindir}/xmms-config
@@ -226,6 +218,9 @@ update-desktop-database &>/dev/null || :
 
 
 %changelog
+* Thu Feb 14 2013 Tom Callaway <spot@fedoraproject.org> - 1:1.2.11-18.20071117cvs
+- drop esound support (esound is dead dead dead)
+
 * Sun Jul 22 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:1.2.11-17.20071117cvs
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
 
