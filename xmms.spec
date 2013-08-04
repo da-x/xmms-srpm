@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.11
-Release:        18.20071117cvs%{?dist}
+Release:        19.20071117cvs%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -218,6 +218,9 @@ update-desktop-database &>/dev/null || :
 
 
 %changelog
+* Sun Aug 04 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:1.2.11-19.20071117cvs
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
+
 * Thu Feb 14 2013 Tom Callaway <spot@fedoraproject.org> - 1:1.2.11-18.20071117cvs
 - drop esound support (esound is dead dead dead)
 
