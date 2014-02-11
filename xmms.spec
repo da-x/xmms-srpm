@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.11
-Release:        19.20071117cvs%{?dist}
+Release:        20.20071117cvs%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -35,6 +35,7 @@ Patch15:	%{name}-1.2.10-reposition.patch
 Patch16:	%{name}-1.2.11-dso.patch
 Patch17:	xmms-1.2.10-ubuntu-CVE-2007-0653.patch
 Patch18:	xmms-alsa-fix-loop.patch
+Patch19:	xmms-1.2.11-mikmod-fix.patch
 
 # This plugin is gone. Esound is gone. 2001 is gone.
 Provides:	xmms-esd = %{epoch}:%{version}-%{release}
@@ -111,6 +112,7 @@ Files needed for building plug-ins for the X MultiMedia System.
 %patch16 -p1 -b .dso
 %patch17 -p1 -b .CVE-2007-0653
 %patch18 -p1 -b .fix-loop
+%patch19 -p1 -b .mikmod-fix
 # Avoid standard rpaths on lib64 archs, --disable-rpath doesn't do it
 sed -i -e 's|"/lib /usr/lib"|"/%{_lib} %{_libdir}"|' configure
 
@@ -141,6 +143,9 @@ make install DESTDIR=%{buildroot}
 install -pm 755 librh_mp3.so %{buildroot}%{_libdir}/xmms/Input
 install -dm 755 %{buildroot}%{_datadir}/xmms/Skins
 find %{buildroot} -name "*.la" | xargs rm -f
+
+# Fix translation directory
+mv %{buildroot}/%{_datadir}/locale/sr@Latn %{buildroot}/%{_datadir}/locale/sr@latin
 
 # On FC5 x86_64, some get created even though we pass --disable-static
 rm -f %{buildroot}%{_libdir}/xmms/*/*.a
@@ -218,6 +223,10 @@ update-desktop-database &>/dev/null || :
 
 
 %changelog
+* Tue Feb 11 2014 Tom Callaway <spot@fedoraproject.org> - 1:1.2.11-20.20071117cvs
+- fix mikmod support (thanks to Ozkan Sezer)
+- fix serbian translation dir (thanks to Mike FABIAN)
+
 * Sun Aug 04 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:1.2.11-19.20071117cvs
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
 
