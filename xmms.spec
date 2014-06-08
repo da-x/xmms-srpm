@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.11
-Release:        20.20071117cvs%{?dist}
+Release:        21.20071117cvs%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -223,6 +223,9 @@ update-desktop-database &>/dev/null || :
 
 
 %changelog
+* Sun Jun 08 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:1.2.11-21.20071117cvs
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
+
 * Tue Feb 11 2014 Tom Callaway <spot@fedoraproject.org> - 1:1.2.11-20.20071117cvs
 - fix mikmod support (thanks to Ozkan Sezer)
 - fix serbian translation dir (thanks to Mike FABIAN)
