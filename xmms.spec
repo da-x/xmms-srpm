@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.11
-Release:        23.20071117cvs%{?dist}
+Release:        24.20071117cvs%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -55,7 +55,7 @@ BuildRequires:  libSM-devel
 BuildRequires:  libXxf86vm-devel
 BuildRequires:  desktop-file-utils
 
-Requires:       unzip libcanberra-gtk2 gtk2 at-spi
+Requires:       unzip libcanberra-gtk2 gtk2
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 
@@ -223,6 +223,9 @@ update-desktop-database &>/dev/null || :
 
 
 %changelog
+* Wed Jul  8 2015 Peter Robinson <pbrobinson@fedoraproject.org> 1:1.2.11-24.20071117cvs
+- Drop obsolete at-spi dependency
+
 * Fri Jun 19 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:1.2.11-23.20071117cvs
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_23_Mass_Rebuild
 
