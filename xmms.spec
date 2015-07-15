@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.11
-Release:        24.20071117cvs%{?dist}
+Release:        25.20071117cvs%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -190,7 +190,9 @@ update-desktop-database &>/dev/null || :
 
 
 %files -f %{name}.lang
-%doc AUTHORS ChangeLog COPYING FAQ NEWS TODO README
+%{!?_licensedir:%global license %%doc}
+%license COPYING
+%doc AUTHORS ChangeLog FAQ NEWS TODO README
 %{_bindir}/xmms
 %{_bindir}/wmxmms
 %{_libexecdir}/xmms
@@ -201,7 +203,7 @@ update-desktop-database &>/dev/null || :
 %{_mandir}/man1/*xmms.1*
 
 %files libs
-%doc COPYING
+%license COPYING
 %{_libdir}/libxmms.so.*
 %dir %{_libdir}/xmms/
 %{_libdir}/xmms/Effect/
@@ -223,6 +225,10 @@ update-desktop-database &>/dev/null || :
 
 
 %changelog
+* Wed Jul 15 2015 Ville Skyttä <ville.skytta@iki.fi> - 1:1.2.11-25.20071117cvs
+- Desktop entry: Add more module format associations, fix some warnings
+- Mark COPYING as %%license where available
+
 * Wed Jul  8 2015 Peter Robinson <pbrobinson@fedoraproject.org> 1:1.2.11-24.20071117cvs
 - Drop obsolete at-spi dependency
 
