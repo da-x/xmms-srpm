@@ -1,6 +1,6 @@
 Name:           xmms
 Version:        1.2.11
-Release:        25.20071117cvs%{?dist}
+Release:        25.20071117cvs.plus%{?dist}
 Epoch:          1
 Summary:        The X MultiMedia System, a media player
 
@@ -36,6 +36,8 @@ Patch16:	%{name}-1.2.11-dso.patch
 Patch17:	xmms-1.2.10-ubuntu-CVE-2007-0653.patch
 Patch18:	xmms-alsa-fix-loop.patch
 Patch19:	xmms-1.2.11-mikmod-fix.patch
+Patch20:        0001-Dan-Aloni-s-changes.patch
+Patch21:        0002-Dan-Aloni-s-changes.patch
 
 # This plugin is gone. Esound is gone. 2001 is gone.
 Provides:	xmms-esd = %{epoch}:%{version}-%{release}
@@ -113,6 +115,9 @@ Files needed for building plug-ins for the X MultiMedia System.
 %patch17 -p1 -b .CVE-2007-0653
 %patch18 -p1 -b .fix-loop
 %patch19 -p1 -b .mikmod-fix
+%patch20 -p1 -b .dan
+%patch21 -p1 -b .dan2
+
 # Avoid standard rpaths on lib64 archs, --disable-rpath doesn't do it
 sed -i -e 's|"/lib /usr/lib"|"/%{_lib} %{_libdir}"|' configure
 

@@ -1,0 +1,107 @@
+From 71fbebfcae51cd171f87e99b4ebb76b7a54defea Mon Sep 17 00:00:00 2001
+From: Dan Aloni <alonid@gmail.com>
+Date: Mon, 27 Jul 2015 21:27:40 +0300
+Subject: [PATCH] X
+
+---
+ libxmms/configfile.c | 36 ++++++++++++++++++++++++++++++------
+ libxmms/configfile.h |  2 ++
+ 2 files changed, 38 insertions(+), 6 deletions(-)
+
+diff --git a/libxmms/configfile.c b/libxmms/configfile.c
+index 198194fe7f4f..036e55b30b26 100644
+--- a/libxmms/configfile.c
++++ b/libxmms/configfile.c
+@@ -43,15 +43,15 @@ ConfigFile *xmms_cfg_new(void)
+ 	return cfg;
+ }
+ 
+-ConfigFile *xmms_cfg_open_file(gchar * filename)
++static
++ConfigFile *xmms_cfg_open_or_merge_file(ConfigFile *cfg, gchar * filename)
+ {
+-	ConfigFile *cfg;
+-
+ 	FILE *file;
+ 	char *buffer, **lines, *tmp;
+ 	int i;
+ 	struct stat stats;
+ 	ConfigSection *section = NULL;
++	ConfigLine *line;
+ 
+ 	g_return_val_if_fail(filename != NULL, FALSE);
+ 
+@@ -70,7 +70,9 @@ ConfigFile *xmms_cfg_open_file(gchar * filename)
+ 	fclose(file);
+ 	buffer[stats.st_size] = '\0';
+ 
+-	cfg = g_malloc0(sizeof (ConfigFile));
++	if (!cfg)
++		cfg = g_malloc0(sizeof (ConfigFile));
++		
+ 	lines = g_strsplit(buffer, "\n", 0);
+ 	g_free(buffer);
+ 	i = 0;
+@@ -81,7 +83,9 @@ ConfigFile *xmms_cfg_open_file(gchar * filename)
+ 			if ((tmp = strchr(lines[i], ']')))
+ 			{
+ 				*tmp = '\0';
+-				section = xmms_cfg_create_section(cfg, &lines[i][1]);
++				section = xmms_cfg_find_section(cfg, &lines[i][1]);
++				if (!section)
++					section = xmms_cfg_create_section(cfg, &lines[i][1]);
+ 			}
+ 		}
+ 		else if (lines[i][0] != '#' && section)
+@@ -90,7 +94,13 @@ ConfigFile *xmms_cfg_open_file(gchar * filename)
+ 			{
+ 				*tmp = '\0';
+ 				tmp++;
+-				xmms_cfg_create_string(section, lines[i], tmp);
++				if ((line = xmms_cfg_find_string(section, lines[i])))
++				{
++					g_free(line->value);
++					line->value = g_strchug(g_strchomp(g_strdup(tmp)));
++				}
++				else
++					xmms_cfg_create_string(section, lines[i], tmp);
+ 			}
+ 		}
+ 		i++;
+@@ -99,6 +109,20 @@ ConfigFile *xmms_cfg_open_file(gchar * filename)
+ 	return cfg;
+ }
+ 
++static gchar *custom_filename = NULL;
++ConfigFile *xmms_cfg_open_file(gchar *filename)
++{
++	ConfigFile *cfg = xmms_cfg_open_or_merge_file(NULL, filename);
++	if (cfg && custom_filename)
++		xmms_cfg_open_or_merge_file(cfg, custom_filename);
++	return cfg;
++}
++
++void xmms_cfg_set_custom_filename(gchar *filename)
++{
++	custom_filename = filename;
++}
++
+ gchar * xmms_cfg_get_default_filename(void)
+ {
+ 	static char *filename = NULL;
+diff --git a/libxmms/configfile.h b/libxmms/configfile.h
+index 2bdd8aab282f..33e7f59fd030 100644
+--- a/libxmms/configfile.h
++++ b/libxmms/configfile.h
+@@ -67,6 +67,8 @@ void xmms_cfg_write_double(ConfigFile * cfg, gchar * section, gchar * key, gdoub
+ 
+ void xmms_cfg_remove_key(ConfigFile * cfg, gchar * section, gchar * key);
+ 
++void xmms_cfg_set_custom_filename(gchar *filename);
++
+ #ifdef __cplusplus
+ }
+ #endif
+-- 
+2.1.0
+

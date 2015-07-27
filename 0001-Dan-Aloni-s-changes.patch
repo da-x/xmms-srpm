@@ -1,0 +1,778 @@
+From b42f3ae37a4a6cda400eda7b3ea157afd7aa99df Mon Sep 17 00:00:00 2001
+From: Dan Aloni <alonid@gmail.com>
+Date: Mon, 27 Jul 2015 21:16:46 +0300
+Subject: [PATCH] Dan Aloni's changes
+
+---
+ .gitignore           |  36 ++++++++++
+ xmms/controlsocket.c |  13 +++-
+ xmms/controlsocket.h |   1 +
+ xmms/main.c          |  20 +++++-
+ xmms/playlist.c      | 190 ++++++++++++++++++++++++++++++++++++++++++---------
+ xmms/playlist.h      |   8 ++-
+ xmms/playlist_list.c |   9 +++
+ xmms/playlist_list.h |   1 +
+ xmms/playlistwin.c   |  34 +++++++--
+ xmms/skin.c          |   6 +-
+ 10 files changed, 269 insertions(+), 49 deletions(-)
+ create mode 100644 .gitignore
+
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 000000000000..426e0874bb8e
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,36 @@
++*.o
++*.lo
++*.la
++Makefile
++Makefile.in
++.libs
++.deps
++aclocal.m4
++autom4te.cache/
++config.log
++config.status
++config.guess
++config.h
++config.h.in
++config.h.in~
++config.sub
++configure
++libtool
++libxmms/configure
++libxmms/libtool
++libxmms/stamp-h1
++po/POTFILES
++stamp-h1
++wmxmms.1
++wmxmms/wmxmms
++xmms-config
++xmms.1
++xmms.spec
++xmms/i18n.h
++xmms/stamp-h2
++xmms/xmms
++build-stamp
++debian/files
++debian/xmms.debhelper.log
++debian/xmms.substvars
++debian/xmms/
+diff --git a/xmms/controlsocket.c b/xmms/controlsocket.c
+index 6001b06a1d25..e60f743fca74 100644
+--- a/xmms/controlsocket.c
++++ b/xmms/controlsocket.c
+@@ -50,13 +50,18 @@ static pthread_cond_t start_cond = PTHREAD_COND_INITIALIZER;
+ 
+ gboolean setup_ctrlsocket(void)
+ {
++	return setup_ctrlsocket_internal(-1);
++}
++
++gboolean setup_ctrlsocket_internal(gint session_id)
++{
+ 	struct sockaddr_un saddr;
+ 	gboolean retval = FALSE;
+ 	gint i;
+ 
+ 	if ((ctrl_fd = socket(AF_UNIX, SOCK_STREAM, 0)) != -1)
+ 	{
+-		for (i = 0;; i++)
++		for (i = ((session_id >= 0) ? session_id : 0); (session_id < 0 || i == session_id); i++)
+ 		{
+ 			saddr.sun_family = AF_UNIX;
+ 			g_snprintf(saddr.sun_path, 108, "%s/xmms_%s.%d",
+@@ -72,6 +77,12 @@ gboolean setup_ctrlsocket(void)
+ 			}
+ 			else
+ 			{
++				if (session_id >= 0 && session_id != i)
++				{
++					g_log(NULL, G_LOG_LEVEL_CRITICAL,
++					      "setup_ctrlsocket(): Session %d already running!", session_id);
++					break;
++				}
+ 				if (cfg.allow_multiple_instances)
+ 					continue;
+ 				break;
+diff --git a/xmms/controlsocket.h b/xmms/controlsocket.h
+index 0a3ba03cc451..c246c45b10e3 100644
+--- a/xmms/controlsocket.h
++++ b/xmms/controlsocket.h
+@@ -23,6 +23,7 @@
+ #define XMMS_PROTOCOL_VERSION		1
+ 
+ gboolean setup_ctrlsocket(void);
++gboolean setup_ctrlsocket_internal(gint session_id);
+ void cleanup_ctrlsocket(void);
+ void start_ctrlsocket(void);
+ void check_ctrlsocket(void);
+diff --git a/xmms/main.c b/xmms/main.c
+index f73695f988ca..439bbba4c52e 100644
+--- a/xmms/main.c
++++ b/xmms/main.c
+@@ -737,7 +737,7 @@ void save_config(void)
+ 
+ 	g_free(filename);
+ 	filename = g_strconcat(g_get_home_dir(), "/.xmms/xmms.m3u", NULL);
+-	playlist_save(filename, FALSE);
++	playlist_save(filename, FALSE, FALSE);
+ 	g_free(filename);
+ }
+ 
+@@ -3796,6 +3796,7 @@ static struct option long_options[] =
+ {
+ 	{"help", 0, NULL, 'h'},
+ 	{"session", 1, NULL, 'n'},
++	{"force-session", 0, NULL, 'N' },
+ 	{"rew", 0, NULL, 'r'},
+ 	{"play", 0, NULL, 'p'},
+ 	{"pause", 0, NULL, 'u'},
+@@ -3811,6 +3812,7 @@ static struct option long_options[] =
+ 	{"version", 0, NULL, 'v'},
+ 	{"quit", 0, NULL, 'q'},
+ 	{"sm-client-id", 1, NULL, 'i'},
++	{"config", 1, NULL, 'c'},
+ 	{0, 0, 0, 0}
+ };
+ 
+@@ -3827,6 +3829,9 @@ void display_usage(void)
+ 	fprintf(stderr, _("Select XMMS session (Default: 0)"));
+ 	fprintf(stderr, "\n  -r, --rew			");
+ 	/* I18N: -r, --rew switch */
++	fprintf(stderr, "\n-N, --force-session	");
++	/* -N, -force-session switch */
++	fprintf(stderr, _("Force XMMS session"));
+ 	fprintf(stderr, _("Skip backwards in playlist"));
+ 	fprintf(stderr, "\n  -p, --play			");
+ 	/* I18N: -p, --play switch */
+@@ -3884,6 +3889,7 @@ void display_usage(void)
+ struct cmdlineopt {
+ 	GList *filenames;
+ 	int session;
++	gboolean force_session;
+ 	gboolean play, stop, pause, fwd, rew, play_pause;
+ 	gboolean toggle_shuffle, toggle_repeat, toggle_advance;
+ 	gboolean enqueue, queue, mainwin, remote, quit;
+@@ -3898,7 +3904,7 @@ void parse_cmd_line(int argc, char **argv, struct cmdlineopt *opt)
+ 
+ 	memset(opt, 0, sizeof(struct cmdlineopt));
+ 	opt->session = -1;
+-	while ((c = getopt_long(argc, argv, "hn:rpusfeQS::R::A::mi:vtq", long_options, NULL)) != -1)
++	while ((c = getopt_long(argc, argv, "hn:rpusfeQS::R::A::mi:vtqNC", long_options, NULL)) != -1)
+ 	{
+ 		switch (c)
+ 		{
+@@ -3908,6 +3914,12 @@ void parse_cmd_line(int argc, char **argv, struct cmdlineopt *opt)
+ 			case 'n':
+ 				opt->session = atoi(optarg);
+ 				break;
++			case 'c':
++				xmms_cfg_set_custom_filename(g_strdup(optarg));
++				break;
++			case 'N':
++				opt->force_session = TRUE;
++				break;
+ 			case 'r':
+ 				opt->rew = TRUE;
+ 				break;
+@@ -4296,7 +4308,9 @@ int main(int argc, char **argv)
+ 	}
+ 
+ 	make_xmms_dir();
+-	if (options.session != -1 || !setup_ctrlsocket())
++	if (options.force_session
++	    ? !setup_ctrlsocket_internal(options.session)
++	    : (options.session != -1 || !setup_ctrlsocket()))
+ 	{
+ 		handle_cmd_line_options(&options, TRUE);
+ 		exit(0);
+diff --git a/xmms/playlist.c b/xmms/playlist.c
+index 90d9d407394f..f250f65291d8 100644
+--- a/xmms/playlist.c
++++ b/xmms/playlist.c
+@@ -26,6 +26,7 @@
+ GList *playlist = NULL;
+ GList *shuffle_list = NULL;
+ GList *queued_list = NULL;
++char *playlist_added_dir_root = NULL;
+ static gboolean playlist_get_info_scan_active = FALSE;
+ gboolean playlist_get_info_going = FALSE;
+ static pthread_t playlist_get_info_thread;
+@@ -39,7 +40,7 @@ extern SVis *mainwin_svis;
+ static gboolean playlist_get_info_entry(PlaylistEntry *entry);
+ static int playlist_sort_str_by_path_cmpfunc(gconstpointer a, gconstpointer b);
+ static guint playlist_load_ins(char * filename, long pos);
+-static void playlist_load_ins_file(char *filename, char *playlist_name, long pos, char *title, int len);
++static void playlist_load_ins_file(char *filename, char *playlist_name, long pos, char *title, int len, char *fade);
+ static int __get_playlist_length(void);
+ static void playlist_generate_shuffle_list(void);
+ static void __playlist_generate_shuffle_list(void);
+@@ -74,11 +75,21 @@ static void play_queued(void)
+ 	g_list_free_1(temp);
+ }
+ 
++static void clear_added_dir_root(void)
++{
++	if (playlist_added_dir_root) {
++		free(playlist_added_dir_root);
++		playlist_added_dir_root = NULL;
++	}
++}
++
+ void playlist_clear(void)
+ {
+ 	GList *node;
+ 	PlaylistEntry *entry;
+ 
++	clear_added_dir_root();
++
+ 	/* always assume that there is another song comming up */	
+ 	if (get_input_playing())
+ 		input_stop_for_restart();
+@@ -90,10 +101,9 @@ void playlist_clear(void)
+ 		while (node)
+ 		{
+ 			entry = node->data;
+-			if (entry->filename)
+-				g_free(entry->filename);
+-			if (entry->title)
+-				g_free(entry->title);
++			g_free(entry->filename);
++			g_free(entry->title);
++			g_free(entry->fade);
+ 			g_free(entry);
+ 			node = node->next;
+ 		}
+@@ -165,10 +175,9 @@ void playlist_delete_node(GList *node, gboolean *set_info_text, gboolean *restar
+ 		 g_list_position(playlist, node))
+ 		*set_info_text = TRUE;
+ 
+-	if (entry->filename)
+-		g_free(entry->filename);
+-	if (entry->title)
+-		g_free(entry->title);
++	g_free(entry->filename);
++	g_free(entry->title);
++	g_free(entry->fade);
+ 	shuffle_list = g_list_remove(shuffle_list, entry);
+ 	playlist = g_list_remove_link(playlist, node);
+ 	g_free(entry);
+@@ -249,6 +258,7 @@ void playlist_delete(gboolean crop)
+ 	gboolean restart_playing = FALSE, set_info_text = FALSE;
+ 	GList *node, *next;
+ 	PlaylistEntry *entry;
++	PlaylistEntry *last_after = NULL;
+ 
+ 	PL_LOCK();
+ 
+@@ -256,12 +266,26 @@ void playlist_delete(gboolean crop)
+ 
+ 	while (node)
+ 	{
++		int deleted = 0;
+ 		entry = node->data;
+ 		next = g_list_next(node);
+-		if ((entry->selected && !crop) || (!entry->selected && crop))
++		if ((entry->selected && !crop) || (!entry->selected && crop)) {
++			if (node == last_after)
++				last_after = NULL;
+ 			playlist_delete_node(node, &set_info_text, &restart_playing);
++			deleted = 1;
++		}
+ 		node = next;
++		if (deleted  &&  node) {
++			last_after = node->data;
++		}
++	}
++
++	if (last_after) {
++		last_after->selected = 1;
++		playlist_unify_selection(playlistwin_list);
+ 	}
++
+ 	PL_UNLOCK();
+ 	
+ 	playlistwin_update_list();
+@@ -276,15 +300,15 @@ void playlist_delete(gboolean crop)
+ 		mainwin_set_info_text();	
+ }
+ 
+-static void __playlist_ins_with_info(char *filename, long pos, char* title, int len)
++static void __playlist_ins_with_info(char *filename, long pos, char* title, int len, char *fade)
+ {
+ 	PlaylistEntry *entry;
+ 
+ 	entry = g_malloc0(sizeof (PlaylistEntry));
+ 	entry->filename = g_strdup(filename);
+-	if (title)
+-		entry->title = g_strdup(title);
+-	entry->length = len;
++	entry->title    = g_strdup(title);
++	entry->length   = len;
++	entry->fade     = g_strdup(fade);
+ 
+ 	PL_LOCK();
+ 	playlist = g_list_insert(playlist, entry, pos);
+@@ -293,9 +317,9 @@ static void __playlist_ins_with_info(char *filename, long pos, char* title, int
+ 	playlist_get_info_scan_active = TRUE;
+ }
+ 
+-static void __playlist_ins(char * filename, long pos)
++static void __playlist_ins(char *filename, long pos)
+ {
+-	__playlist_ins_with_info(filename, pos, NULL, -1);
++	__playlist_ins_with_info(filename, pos, NULL, -1, NULL);
+ }
+ 
+ static gboolean is_playlist_name(char *pathname)
+@@ -474,12 +498,39 @@ static GList* playlist_dir_find_files(char *path, gboolean background, GHashTabl
+ 	return list;
+ }
+ 
+-guint playlist_ins_dir(char *path, long pos, gboolean background)
++gboolean playlist_has_file(const char *filename)
++{
++	GList *node;
++
++	PL_LOCK();
++
++	node = playlist;
++	while (node)
++	{
++		PlaylistEntry *entry = node->data;
++		if (0 == strcmp(entry->filename, filename)) {
++			PL_UNLOCK();
++
++			return TRUE;
++		}
++		node = g_list_next(node);
++	}
++
++	PL_UNLOCK();
++
++	return FALSE;
++}
++
++guint playlist_ins_dir(char *path, long pos, gboolean background, gboolean avoid_dups)
+ {
+ 	guint entries = 0;
+ 	GList *list, *node;
+ 	GHashTable *htab;
+ 
++	if (!playlist_added_dir_root) {
++		playlist_added_dir_root = strdup(path);
++	}
++
+ 	htab = g_hash_table_new(devino_hash, devino_compare);
+ 
+ 	list = playlist_dir_find_files(path, background, htab);
+@@ -490,11 +541,13 @@ guint playlist_ins_dir(char *path, long pos, gboolean background)
+ 	node = list;
+ 	while (node)
+ 	{
+-		__playlist_ins(node->data, pos);
+-		entries++;
+-		if (pos >= 0)
+-			pos++;
+-		g_free(node->data);
++		if (!avoid_dups  ||  !playlist_has_file(node->data)) {
++			__playlist_ins(node->data, pos);
++			entries++;
++			if (pos >= 0)
++				pos++;
++			g_free(node->data);
++		}
+ 		node = g_list_next(node);
+ 	}
+ 	g_list_free(list);
+@@ -526,7 +579,7 @@ guint playlist_ins_url_string(char * string, long pos)
+ 
+ 		stat(string, &statbuf);
+ 		if (S_ISDIR(statbuf.st_mode))
+-			i = playlist_ins_dir(string, pos, FALSE);
++			i = playlist_ins_dir(string, pos, FALSE, FALSE);
+ 		else
+ 		{
+ 			if (is_playlist_name (string))
+@@ -1094,7 +1147,7 @@ int playlist_get_current_length(void)
+ 	return retval;
+ }
+ 
+-gboolean playlist_save(char *filename, gboolean is_pls)
++gboolean playlist_save(char *filename, gboolean is_pls, gboolean save_queue)
+ {
+ 	GList *node;
+ 	FILE *file;
+@@ -1106,13 +1159,25 @@ gboolean playlist_save(char *filename, gboolean is_pls)
+ 	{
+ 		is_pls = TRUE;
+ 		fprintf(file, "[playlist]\n");
+-		fprintf(file, "NumberOfEntries=%d\n", get_playlist_length());
++		if (!save_queue) {
++			fprintf(file, "NumberOfEntries=%d\n", get_playlist_length());
++		} else {
++			fprintf(file, "NumberOfEntries=%d\n", get_playlist_queue_length());
++		}
+ 	}
+-	else if (cfg.use_pl_metadata)
++	else if (cfg.use_pl_metadata) {
+ 		fprintf(file, "#EXTM3U\n");
++		if (playlist_added_dir_root) {
++			fprintf(file, "#EXTROOT:%s\n", playlist_added_dir_root);
++		}
++	}
+ 
+ 	PL_LOCK();
+-	node = playlist;
++	if (!save_queue) {
++		node = playlist;
++	} else {
++		node = queued_list;
++	}
+ 	while (node)
+ 	{
+ 		PlaylistEntry *entry = node->data;
+@@ -1148,7 +1213,7 @@ gboolean playlist_load(char * filename)
+ }
+ 
+ static void playlist_load_ins_file(char *filename, char *playlist_name,
+-				   long pos, char *title, int len)
++				   long pos, char *title, int len, char *fade)
+ {
+ 	char *temp, *path;
+ 
+@@ -1166,16 +1231,16 @@ static void playlist_load_ins_file(char *filename, char *playlist_name,
+ 			*temp = '\0';
+ 		else
+ 		{
+-			__playlist_ins_with_info(filename, pos, title, len);
++			__playlist_ins_with_info(filename, pos, title, len, fade);
+ 			return;
+ 		}
+ 		temp = g_strdup_printf("%s/%s", path, filename);
+-		__playlist_ins_with_info(temp, pos, title, len);
++		__playlist_ins_with_info(temp, pos, title, len, fade);
+ 		g_free(temp);
+ 		g_free(path);
+ 	}
+ 	else
+-		__playlist_ins_with_info(filename, pos, title, len);
++		__playlist_ins_with_info(filename, pos, title, len, fade);
+ }
+ 
+ static void parse_extm3u_info(char *info, char **title, int *length)
+@@ -1214,7 +1279,7 @@ static guint playlist_load_ins(char * filename, long pos)
+ 	guint entries = 0;
+ 	int linelen = 1024;
+ 	gboolean extm3u = FALSE;
+-	char *ext_info = NULL, *ext_title = NULL;
++	char *ext_info = NULL, *ext_title = NULL, *ext_fade = NULL;
+ 	int ext_len = -1;
+ 
+ 	ext = strrchr(filename, '.');
+@@ -1244,7 +1309,7 @@ static guint playlist_load_ins(char * filename, long pos)
+ 			if (line != NULL)
+ 			{
+ 				playlist_load_ins_file(line, filename, pos,
+-						       ext_title, -1);
++						       ext_title, -1, NULL);
+ 				entries++;
+ 				if (pos >= 0)
+ 					pos++;
+@@ -1285,6 +1350,19 @@ static guint playlist_load_ins(char * filename, long pos)
+ 			extm3u = TRUE;
+ 			continue;
+ 		}
++
++		if (!strncmp(line, "#EXTROOT:", 9))
++		{
++			if (!playlist_added_dir_root) {
++				const char *d = &line[9];
++				struct stat st;
++
++				if (stat(d, &st) == 0  &&  S_ISDIR(st.st_mode))
++					playlist_added_dir_root = strdup(d);
++			}
++			continue;
++		}
++
+ 		
+ 		if (extm3u && !strncmp(line, "#EXTINF:", 8))
+ 		{
+@@ -1293,6 +1371,13 @@ static guint playlist_load_ins(char * filename, long pos)
+ 			ext_info = g_strdup(line);
+ 			continue;
+ 		}
++		else if (extm3u && !strncmp(line, "#EXTFADE:", 9))
++		{
++			if (ext_fade)
++				g_free(ext_fade);
++			ext_fade = g_strdup(line);
++			continue;
++		}
+ 		
+ 		if (line[0] == '#')
+ 		{
+@@ -1312,11 +1397,14 @@ static guint playlist_load_ins(char * filename, long pos)
+ 			ext_info = NULL;
+ 		}
+ 		
+-		playlist_load_ins_file(line, filename, pos, ext_title, ext_len);
++		playlist_load_ins_file(line, filename, pos, ext_title, ext_len, ext_fade);
+ 		
+ 		g_free(ext_title);
+ 		ext_title = NULL;
+ 		ext_len = -1;
++
++		g_free(ext_fade);
++		ext_fade = NULL;
+ 		
+ 		entries++;
+ 		if (pos >= 0)
+@@ -1466,6 +1554,32 @@ int playlist_get_songtime(int pos)
+ 	return retval;
+ }
+ 
++char * playlist_get_fadeinfo(int pos)
++{
++	char *ret;
++	PlaylistEntry *entry;
++	GList *node;
++	
++	PL_LOCK();
++	if (!playlist)
++	{
++		PL_UNLOCK();
++		return NULL;
++	}
++	node = g_list_nth(playlist, pos);
++	if (!node)
++	{
++		PL_UNLOCK();
++		return NULL;
++	}
++	entry = node->data;
++	
++	ret = g_strdup(entry->fade);
++	PL_UNLOCK();
++
++	return ret;
++}
++
+ static int playlist_sort_by_title_cmpfunc(PlaylistEntry * a, PlaylistEntry * b)
+ {
+ 	char *a_title, *b_title;
+@@ -1737,6 +1851,14 @@ void playlist_random(void)
+ 	PL_UNLOCK();
+ }
+ 
++void playlist_refresh(void)
++{
++	if (playlist_added_dir_root) {
++		playlist_ins_dir(playlist_added_dir_root, -1, TRUE, TRUE);
++		playlist_remove_dead_files();
++	}
++}
++
+ void playlist_randomize_selected(void)
+ {
+ 	PL_LOCK();
+diff --git a/xmms/playlist.h b/xmms/playlist.h
+index 260836ee694a..fe38e009a2cd 100644
+--- a/xmms/playlist.h
++++ b/xmms/playlist.h
+@@ -26,6 +26,7 @@ typedef struct
+         gchar *title;
+         gint length;
+         gboolean selected;
++        gchar *fade;
+ }
+ PlaylistEntry;
+ 
+@@ -35,8 +36,8 @@ void playlist_delete(gboolean crop);
+ #define playlist_add(filename) playlist_ins(filename, -1)
+ void playlist_ins(gchar * filename, glong pos);
+ /*  void playlist_add_dir(gchar * dir); */
+-#define playlist_add_dir(directory) playlist_ins_dir(directory, -1, TRUE)
+-guint playlist_ins_dir(char *dir, long pos, gboolean background);
++#define playlist_add_dir(directory) playlist_ins_dir(directory, -1, TRUE, FALSE)
++guint playlist_ins_dir(char *dir, long pos, gboolean background, gboolean avoid_dups);
+ /*  void playlist_add_url_string(gchar * string); */
+ #define playlist_add_url_string(string) playlist_ins_url_string(string, -1)
+ guint playlist_ins_url_string(gchar * string, glong pos);
+@@ -63,7 +64,7 @@ gint get_playlist_position(void);
+ gint __get_playlist_position(void);
+ gchar *playlist_get_info_text(void);
+ int playlist_get_current_length(void);
+-gboolean playlist_save(char *filename, gboolean is_pls);
++gboolean playlist_save(char *filename, gboolean is_pls, gboolean save_queue);
+ gboolean playlist_load(gchar * filename);
+ GList *get_playlist(void);
+ GList *get_queue(void);
+@@ -80,6 +81,7 @@ void playlist_sort_selected_by_path(void);
+ void playlist_sort_selected_by_date(void);
+ void playlist_reverse(void);
+ void playlist_random(void);
++void playlist_refresh(void);
+ void playlist_randomize_selected(void);
+ void playlist_remove_dead_files(void);
+ void playlist_fileinfo_current(void);
+diff --git a/xmms/playlist_list.c b/xmms/playlist_list.c
+index d4b70b2a3e05..a36d5494a981 100644
+--- a/xmms/playlist_list.c
++++ b/xmms/playlist_list.c
+@@ -87,6 +87,15 @@ void playlist_list_move_up(PlayList_List *pl)
+ 		pl->pl_prev_max--;
+ }
+ 
++void playlist_unify_selection(PlayList_List *pl)
++{
++	if (pl->pl_prev_min != -1) {
++		pl->pl_prev_selected = MIN(pl->pl_prev_min, pl->pl_prev_max);
++		pl->pl_prev_min = pl->pl_prev_selected;
++		pl->pl_prev_max = pl->pl_prev_selected;
++	}
++}
++
+ void playlist_list_move_down(PlayList_List *pl)
+ {
+ 	GList *list;
+diff --git a/xmms/playlist_list.h b/xmms/playlist_list.h
+index 2bbca101f954..0d264c3ae3bd 100644
+--- a/xmms/playlist_list.h
++++ b/xmms/playlist_list.h
+@@ -34,6 +34,7 @@ PlayList_List *create_playlist_list(GList ** wlist, GdkPixmap * parent, GdkGC *
+ void playlist_list_move_up(PlayList_List *pl);
+ void playlist_list_move_down(PlayList_List *pl);
+ int playlist_list_get_playlist_position(PlayList_List *pl, int x, int y);
++void playlist_unify_selection(PlayList_List *pl);
+ void playlist_list_set_font(char *font);
+ 
+ #endif
+diff --git a/xmms/playlistwin.c b/xmms/playlistwin.c
+index 0cb974f5d1ee..86abfc14e90f 100644
+--- a/xmms/playlistwin.c
++++ b/xmms/playlistwin.c
+@@ -32,6 +32,7 @@ static GdkBitmap *playlistwin_mask;
+ static GdkGC *playlistwin_gc;
+ static int playlistwin_resizing, playlistwin_resize_x, playlistwin_resize_y;
+ static int playlistwin_save_type;
++static int playlistwin_save_queue;
+ 
+ gboolean playlistwin_focus = FALSE;
+ 
+@@ -63,12 +64,12 @@ extern TButton *mainwin_pl;
+ 
+ enum
+ {
+-	ADD_URL, ADD_DIR, ADD_FILE,
++	ADD_URL, ADD_DIR, ADD_FILE, REFRESH_LIST,
+ 	SUB_MISC, SUB_ALL, SUB_CROP, SUB_SELECTED,
+ 	SEL_INV, SEL_ZERO, SEL_ALL,
+ 	MISC_SORT, MISC_FILEINFO, MISC_MISCOPTS, MISC_QUEUE,
+ 	PLIST_NEW, PLIST_SAVE, PLIST_LOAD,
+-	SEL_LOOKUP, MISC_QUEUE_MANAGER
++	SEL_LOOKUP, PLIST_SAVE_QUEUE, MISC_QUEUE_MANAGER
+ };
+ 
+ static void playlistwin_sort_menu_callback(gpointer cb_data, guint action, GtkWidget * w);
+@@ -164,6 +165,8 @@ GtkItemFactoryEntry playlistwin_popup_menu_entries[] =
+ 	{N_("/Add/Directory"), NULL, playlistwin_popup_menu_callback, ADD_DIR, "<Item>"},
+ 	{N_("/Add/Url"), NULL, playlistwin_popup_menu_callback, ADD_URL, "<Item>"},
+ 
++	{N_("/Refresh from directory"), NULL, playlistwin_popup_menu_callback, REFRESH_LIST, "<Item>"},
++
+ 	{N_("/Remove"), NULL, NULL, 0, "<Branch>"},
+ 	{N_("/Remove/Selected"), NULL, playlistwin_popup_menu_callback, SUB_SELECTED, "<Item>"},
+ 	{N_("/Remove/Crop"), NULL, playlistwin_popup_menu_callback, SUB_CROP, "<Item>"},
+@@ -182,6 +185,7 @@ GtkItemFactoryEntry playlistwin_popup_menu_entries[] =
+ 	{N_("/Playlist"), NULL, NULL, 0, "<Branch>"},
+ 	{N_("/Playlist/Load List"), NULL, playlistwin_popup_menu_callback, PLIST_LOAD, "<Item>"},
+ 	{N_("/Playlist/Save List"), NULL, playlistwin_popup_menu_callback, PLIST_SAVE, "<Item>"},
++	{N_("/Playlist/Save List Queue"), NULL, playlistwin_popup_menu_callback, PLIST_SAVE_QUEUE, "<Item>"},
+ 	{N_("/Playlist/New List"), NULL, playlistwin_popup_menu_callback, PLIST_NEW, "<Item>"},
+ };
+ 
+@@ -744,7 +748,7 @@ static void playlistwin_save_playlist_error(char* path, GtkWidget *filesel)
+ static void playlistwin_check_overwrite_cb(GtkButton *w, gpointer user_data)
+ {
+ 	struct overwrite_data *odata = user_data;
+-	if (!playlist_save(odata->filename, odata->pls))
++	if (!playlist_save(odata->filename, odata->pls, playlistwin_save_queue))
+ 		playlistwin_save_playlist_error(odata->filename, odata->fsel);
+ 	else
+ 	{
+@@ -859,7 +863,7 @@ static void playlistwin_save_filesel_ok(GtkWidget * w, GtkFileSelection * filese
+ 		playlistwin_check_overwrite(GTK_WIDGET(filesel), filename, pls);
+ 	else
+ 	{
+-		if (!playlist_save(filename, pls))
++		if (!playlist_save(filename, pls, playlistwin_save_queue))
+ 			playlistwin_save_playlist_error(filename, GTK_WIDGET(filesel));
+ 		else
+ 			gtk_widget_hide(GTK_WIDGET(filesel));
+@@ -984,6 +988,18 @@ static void playlistwin_show_save_filesel(void)
+ 	gtk_widget_show_all(filesel);
+ }
+ 
++static void playlistwin_show_save_playlist_filesel(void)
++{
++	playlistwin_save_queue = 0;
++	playlistwin_show_save_filesel();
++}
++
++static void playlistwin_show_save_queue_filesel(void)
++{
++	playlistwin_save_queue = 1;
++	playlistwin_show_save_filesel();
++}
++
+ static void playlistwin_save_type_cb(gpointer cb_data, guint action, GtkWidget * w)
+ {
+ 	playlistwin_save_type = action;
+@@ -1004,6 +1020,11 @@ static void playlistwin_popup_handler(int item)
+ 			playlistwin_show_filebrowser();
+ 			break;
+ 
++		/* Refresh */
++		case REFRESH_LIST:
++			playlist_refresh();
++			break;
++
+ 		/* Sub Button */
+ 		case SUB_MISC:
+ 			playlistwin_show_sub_misc_menu();
+@@ -1054,7 +1075,10 @@ static void playlistwin_popup_handler(int item)
+ 			mainwin_set_info_text();
+ 			break;
+ 		case PLIST_SAVE:
+-			playlistwin_show_save_filesel();
++			playlistwin_show_save_playlist_filesel();
++			break;
++		case PLIST_SAVE_QUEUE:
++			playlistwin_show_save_queue_filesel();
+ 			break;
+ 		case PLIST_LOAD:
+ 			playlistwin_show_load_filesel();
+diff --git a/xmms/skin.c b/xmms/skin.c
+index 699d4bcf2196..1f373ccb212c 100644
+--- a/xmms/skin.c
++++ b/xmms/skin.c
+@@ -197,9 +197,9 @@ void init_skins(void)
+ 	skin->def_pledit_normalbg.green = 0x1200;
+ 	skin->def_pledit_normalbg.blue = 0x0A00;
+ 	gdk_color_alloc(gdk_window_get_colormap(playlistwin->window), &skin->def_pledit_normalbg);
+-	skin->def_pledit_selectedbg.red = 0x0A00;
+-	skin->def_pledit_selectedbg.green = 0x1200;
+-	skin->def_pledit_selectedbg.blue = 0x4A00;
++	skin->def_pledit_selectedbg.red = 0x1500;
++	skin->def_pledit_selectedbg.green = 0x3200;
++	skin->def_pledit_selectedbg.blue = 0x8A00;
+ 	gdk_color_alloc(gdk_window_get_colormap(playlistwin->window), &skin->def_pledit_selectedbg);
+ 	for (i = 0; i < 24; i++)
+ 	{
+-- 
+2.1.0
+
